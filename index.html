@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lockbox Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F3EE;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE7;
+    --border: #E0DBD3;
+    --border2: #C8C2B8;
+    --text: #1A1814;
+    --text2: #6B6560;
+    --text3: #A09890;
+    --accent: #1A1814;
+    --out-bg: #FEF3E2;
+    --out-text: #92480A;
+    --out-border: #F5C77A;
+    --in-bg: #E8F5EE;
+    --in-text: #1A6640;
+    --in-border: #7ECFA0;
+    --danger-bg: #FEE8E8;
+    --danger-text: #8B1F1F;
+    --danger-border: #F5A0A0;
+    --info-bg: #E8EEF8;
+    --info-text: #1A3A7A;
+    --info-border: #90AFEA;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+    background: var(--text);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-icon svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; }
+
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .nav-tab {
+    padding: 6px 16px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .nav-tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .admin-btn {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 14px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .admin-btn:hover { border-color: var(--border2); color: var(--text); }
+  .admin-btn.active { background: var(--text); color: white; border-color: var(--text); }
+
+  main { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Form page */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 12px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 12px;
+  }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus { border-color: var(--border2); }
+  input[type="text"]::placeholder { color: var(--text3); }
+
+  .action-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    padding: 9px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .action-btn.out.active { background: var(--out-bg); color: var(--out-text); border-color: var(--out-border); }
+  .action-btn.in.active { background: var(--in-bg); color: var(--in-text); border-color: var(--in-border); }
+
+  .items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+
+  .item-tile {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--surface);
+    position: relative;
+  }
+
+  .item-tile:hover:not(.unavailable) { border-color: var(--border2); background: var(--surface2); }
+  .item-tile.selected { border-color: #1A1814; background: #F5F3EE; }
+  .item-tile.unavailable { opacity: 0.5; cursor: not-allowed; }
+
+  .item-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .item-tile.selected .item-name { color: var(--text); }
+
+  .status-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .pill-out { background: var(--out-bg); color: var(--out-text); border: 1px solid var(--out-border); }
+  .pill-in { background: var(--in-bg); color: var(--in-text); border: 1px solid var(--in-border); }
+
+  .item-agent {
+    font-size: 10px;
+    color: var(--text3);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--text);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 4px;
+  }
+
+  .submit-btn:hover { opacity: 0.85; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error-msg { font-size: 12px; color: var(--danger-text); margin-top: 8px; }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 30px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+    white-space: nowrap;
+  }
+
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Log page */
+  .log-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn.active { background: var(--text); color: white; border-color: var(--text); }
+
+  .log-entry {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .log-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-out { background: var(--out-text); }
+  .dot-in { background: var(--in-text); }
+
+  .log-info { flex: 1; min-width: 0; }
+
+  .log-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .log-detail {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .log-meta {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .log-time { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .log-category { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-left: auto;
+    margin-bottom: 12px;
+  }
+
+  .refresh-btn:hover { border-color: var(--border2); color: var(--text); }
+  .refresh-btn svg { width: 13px; height: 13px; }
+
+  /* Admin page */
+  .admin-section { margin-bottom: 2rem; }
+
+  .items-admin-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .admin-item-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+
+  .admin-item-row input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 7px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface2);
+    outline: none;
+  }
+
+  .admin-item-row input:focus { border-color: var(--border2); background: var(--surface); }
+
+  .del-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .del-btn:hover { border-color: var(--danger-border); color: var(--danger-text); background: var(--danger-bg); }
+
+  .add-item-btn {
+    width: 100%;
+    padding: 9px;
+    border: 1px dashed var(--border2);
+    border-radius: 10px;
+    background: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--text3);
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+  }
+
+  .add-item-btn:hover { border-color: var(--text2); color: var(--text2); background: var(--surface); }
+
+  .save-admin-btn {
+    padding: 9px 20px;
+    background: var(--text);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 12px;
+  }
+
+  .save-admin-btn:hover { opacity: 0.8; }
+
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255,255,255,0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-overlay {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text3);
+    font-size: 14px;
+  }
+
+  @media (max-width: 480px) {
+    header { padding: 0 1rem; }
+    main { padding: 1.25rem 1rem; }
+    .logo span { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="8" rx="1"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
+    </div>
+    <span>Lockbox Tracker</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('form')">Check out/in</button>
+    <button class="nav-tab" onclick="showPage('log')">Activity log</button>
+  </div>
+  <button class="admin-btn" id="adminToggle" onclick="toggleAdmin()">Admin</button>
+</header>
+
+<main>
+  <!-- FORM PAGE -->
+  <div class="page active" id="page-form">
+    <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
+      <button class="action-btn out active" id="cat-supra" onclick="setCategory('supra')" style="flex:1;font-size:14px;padding:10px;">Supra lockbox</button>
+      <button class="action-btn in" id="cat-cont" onclick="setCategory('cont')" style="flex:1;font-size:14px;padding:10px;">Contractor box</button>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Agent info</div>
+      <div class="form-group">
+        <label>Agent name</label>
+        <input type="text" id="f-agent" placeholder="e.g. Maria Santos" />
+      </div>
+      <div class="form-group">
+        <label>Listing address</label>
+        <input type="text" id="f-address" placeholder="e.g. 123 Burnham St, Baguio City" />
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">Action</div>
+      <div class="action-row">
+        <button class="action-btn out active" id="action-out" onclick="setAction('out')">Check out</button>
+        <button class="action-btn in" id="action-in" onclick="setAction('in')">Check in</button>
+      </div>
+      <div class="section-label" id="items-label">Select key</div>
+      <div class="items-grid" id="items-grid">
+        <div class="loading-overlay">Loading...</div>
+      </div>
+    </div>
+
+    <div class="error-msg" id="form-error" style="display:none;"></div>
+    <button class="submit-btn" onclick="submitForm()" id="submit-btn">Submit</button>
+  </div>
+
+  <!-- LOG PAGE -->
+  <div class="page" id="page-log">
+    <button class="refresh-btn" onclick="loadLog()">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 7A5 5 0 112 7"/><polyline points="12,4 12,7 9,7"/></svg>
+      Refresh
+    </button>
+    <div class="log-filters">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('out', this)">Checked out</button>
+      <button class="filter-btn" onclick="setFilter('in', this)">Checked in</button>
+      <button class="filter-btn" onclick="setFilter('supra', this)">Supra</button>
+      <button class="filter-btn" onclick="setFilter('contractor', this)">Contractor</button>
+    </div>
+    <div id="log-list"><div class="loading-overlay">Loading activity log...</div></div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div class="page" id="page-admin">
+    <div class="admin-section">
+      <div class="section-label" style="margin-bottom:14px;">Supra lockbox keys</div>
+      <div class="items-admin-list" id="admin-supra-list"></div>
+      <button class="add-item-btn" onclick="addAdminItem('supra')">+ Add key</button>
+      <br/>
+      <button class="save-admin-btn" onclick="saveAdmin('supra')">Save supra keys</button>
+    </div>
+
+    <div class="admin-section">
+      <div class="section-label" style="margin-bottom:14px;">Contractor boxes</div>
+      <div class="items-admin-list" id="admin-cont-list"></div>
+      <button class="add-item-btn" onclick="addAdminItem('cont')">+ Add box</button>
+      <br/>
+      <button class="save-admin-btn" onclick="saveAdmin('cont')">Save contractor boxes</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRlODd_VbYwudEviG0ipqZCZXYtT7ei1iZxRS8oMwAgg6rojgCabyaLS7C-6m8EVz3/exec';
+
+const defaultItems = {
+  supra: ['Key #101','Key #102','Key #103','Key #104','Key #105'],
+  cont: ['Box #1','Box #2','Box #3','Box #4']
+};
+
+let state = {
+  category: 'supra',
+  action: 'out',
+  selected: null,
+  items: JSON.parse(localStorage.getItem('lb_items') || 'null') || defaultItems,
+  status: JSON.parse(localStorage.getItem('lb_status') || '{}')
+};
+
+let logData = [];
+let logFilter = 'all';
+
+function saveLocal() {
+  localStorage.setItem('lb_items', JSON.stringify(state.items));
+  localStorage.setItem('lb_status', JSON.stringify(state.status));
+}
+
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  if (page === 'form') tabs[0].classList.add('active');
+  else if (page === 'log') { tabs[1].classList.add('active'); loadLog(); }
+  else if (page === 'admin') renderAdmin();
+}
+
+function toggleAdmin() {
+  const btn = document.getElementById('adminToggle');
+  const isAdmin = document.getElementById('page-admin').classList.contains('active');
+  if (isAdmin) {
+    btn.classList.remove('active');
+    showPage('form');
+  } else {
+    btn.classList.add('active');
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-admin').classList.add('active');
+    renderAdmin();
+  }
+}
+
+function setCategory(cat) {
+  state.category = cat;
+  state.selected = null;
+  document.getElementById('cat-supra').className = 'action-btn out' + (cat === 'supra' ? ' active' : '');
+  document.getElementById('cat-cont').className = 'action-btn in' + (cat === 'cont' ? ' active' : '');
+  document.getElementById('items-label').textContent = cat === 'supra' ? 'Select key' : 'Select box';
+  renderItems();
+}
+
+function setAction(action) {
+  state.action = action;
+  state.selected = null;
+  document.getElementById('action-out').className = 'action-btn out' + (action === 'out' ? ' active' : '');
+  document.getElementById('action-in').className = 'action-btn in' + (action === 'in' ? ' active' : '');
+  renderItems();
+}
+
+function renderItems() {
+  const grid = document.getElementById('items-grid');
+  const items = state.items[state.category];
+  grid.innerHTML = '';
+  items.forEach((name, i) => {
+    const key = state.category + '_' + i;
+    const st = state.status[key] || { out: false };
+    const isOut = st.out;
+    const canSelect = state.action === 'out' ? !isOut : isOut;
+    const isSelected = state.selected === key;
+
+    let cls = 'item-tile';
+    if (!canSelect) cls += ' unavailable';
+    if (isSelected) cls += ' selected';
+
+    const pill = isOut
+      ? `<span class="status-pill pill-out">Checked out</span>${st.by ? `<div class="item-agent">${st.by}</div>` : ''}`
+      : `<span class="status-pill pill-in">Available</span>`;
+
+    const div = document.createElement('div');
+    div.className = cls;
+    div.innerHTML = `<div class="item-name">${name}</div>${pill}`;
+    if (canSelect) div.onclick = () => selectItem(key);
+    grid.appendChild(div);
+  });
+}
+
+function selectItem(key) {
+  state.selected = state.selected === key ? null : key;
+  renderItems();
+}
+
+function showError(msg) {
+  const el = document.getElementById('form-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('form-error').style.display = 'none';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+async function submitForm() {
+  hideError();
+  const agent = document.getElementById('f-agent').value.trim();
+  const address = document.getElementById('f-address').value.trim();
+  if (!agent) { showError('Please enter the agent name.'); return; }
+  if (!address) { showError('Please enter the listing address.'); return; }
+  if (!state.selected) { showError('Please select a ' + (state.category === 'supra' ? 'key' : 'box') + '.'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Saving...';
+
+  const idx = parseInt(state.selected.split('_')[1]);
+  const itemName = state.items[state.category][idx];
+  const categoryLabel = state.category === 'supra' ? 'Supra Lockbox' : 'Contractor Box';
+
+  const payload = {
+    agent, address,
+    category: categoryLabel,
+    item: itemName,
+    action: state.action === 'out' ? 'Check Out' : 'Check In'
+  };
+
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (state.action === 'out') {
+      state.status[state.selected] = { out: true, by: agent, address };
+    } else {
+      state.status[state.selected] = { out: false };
+    }
+    saveLocal();
+
+    document.getElementById('f-agent').value = '';
+    document.getElementById('f-address').value = '';
+    state.selected = null;
+    renderItems();
+    showToast(state.action === 'out' ? `${itemName} checked out to ${agent}` : `${itemName} checked in by ${agent}`);
+  } catch(e) {
+    showError('Failed to save. Please check your connection.');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = 'Submit';
+}
+
+async function loadLog() {
+  document.getElementById('log-list').innerHTML = '<div class="loading-overlay">Loading activity log...</div>';
+  try {
+    const res = await fetch(SCRIPT_URL + '?ts=' + Date.now());
+    const rows = await res.json();
+    logData = rows.slice(1).reverse();
+    renderLog();
+  } catch(e) {
+    document.getElementById('log-list').innerHTML = '<div class="empty-state">Could not load log. Check your connection.</div>';
+  }
+}
+
+function setFilter(f, btn) {
+  logFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog();
+}
+
+function renderLog() {
+  const list = document.getElementById('log-list');
+  let rows = logData;
+  if (logFilter === 'out') rows = rows.filter(r => (r[5]||'').toLowerCase().includes('out'));
+  else if (logFilter === 'in') rows = rows.filter(r => (r[5]||'').toLowerCase().includes('in') && !(r[5]||'').toLowerCase().includes('out'));
+  else if (logFilter === 'supra') rows = rows.filter(r => (r[3]||'').toLowerCase().includes('supra'));
+  else if (logFilter === 'contractor') rows = rows.filter(r => (r[3]||'').toLowerCase().includes('contractor'));
+
+  if (rows.length === 0) { list.innerHTML = '<div class="empty-state">No entries found.</div>'; return; }
+
+  list.innerHTML = rows.map(r => {
+    const [timestamp, agent, address, category, item, action] = r;
+    const isOut = (action||'').toLowerCase().includes('out');
+    return `
+      <div class="log-entry">
+        <div class="log-dot ${isOut ? 'dot-out' : 'dot-in'}"></div>
+        <div class="log-info">
+          <div class="log-name">${agent || '—'} &mdash; ${item || '—'}</div>
+          <div class="log-detail">${address || '—'}</div>
+        </div>
+        <div class="log-meta">
+          <span class="status-pill ${isOut ? 'pill-out' : 'pill-in'}">${isOut ? 'Out' : 'In'}</span>
+          <div class="log-time">${formatTime(timestamp)}</div>
+          <div class="log-category">${category || ''}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function formatTime(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  if (isNaN(d)) return ts;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' ' +
+    d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderAdmin() {
+  ['supra','cont'].forEach(cat => {
+    const list = document.getElementById('admin-' + cat + '-list');
+    list.innerHTML = '';
+    state.items[cat].forEach((name, i) => {
+      const row = document.createElement('div');
+      row.className = 'admin-item-row';
+      row.dataset.idx = i;
+      row.dataset.cat = cat;
+      row.innerHTML = `
+        <input type="text" value="${name}" placeholder="Item name" data-cat="${cat}" data-idx="${i}" />
+        <button class="del-btn" onclick="deleteAdminItem('${cat}', ${i})">×</button>`;
+      list.appendChild(row);
+    });
+  });
+}
+
+function addAdminItem(cat) {
+  state.items[cat].push(cat === 'supra' ? 'New Key' : 'New Box');
+  saveLocal();
+  renderAdmin();
+  renderItems();
+}
+
+function deleteAdminItem(cat, idx) {
+  state.items[cat].splice(idx, 1);
+  saveLocal();
+  renderAdmin();
+  renderItems();
+}
+
+function saveAdmin(cat) {
+  const inputs = document.querySelectorAll(`#admin-${cat}-list input`);
+  inputs.forEach((inp, i) => { state.items[cat][i] = inp.value.trim() || state.items[cat][i]; });
+  saveLocal();
+  renderItems();
+  showToast('Saved!');
+}
+
+renderItems();
+</script>
+</body>
+</html>
