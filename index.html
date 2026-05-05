@@ -1,584 +1,474 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Lockbox Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #F5F3EE; --surface: #FFFFFF; --surface2: #F0EDE7;
-    --border: #E0DBD3; --border2: #C8C2B8;
-    --text: #1A1814; --text2: #6B6560; --text3: #A09890;
-    --out-bg: #FEF3E2; --out-text: #92480A; --out-border: #F5C77A;
-    --in-bg: #E8F5EE; --in-text: #1A6640; --in-border: #7ECFA0;
-    --danger-bg: #FEE8E8; --danger-text: #8B1F1F; --danger-border: #F5A0A0;
-  }
-  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Key & Lockbox Tracker</title>
+  <style>
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --surface2: #f0ede6;
+      --border: rgba(0,0,0,0.1);
+      --border2: rgba(0,0,0,0.2);
+      --text: #1a1a18;
+      --text2: #6b6a65;
+      --text3: #9e9d98;
+      --red: #E24B4A; --red-bg: #FCEBEB; --red-text: #A32D2D; --red-border: #F09595;
+      --green: #639922; --green-bg: #EAF3DE; --green-text: #3B6D11; --green-border: #C0DD97;
+      --blue: #378ADD; --blue-bg: #E6F1FB; --blue-text: #185FA5; --blue-border: #B5D4F4;
+      --radius-sm: 8px; --radius-md: 10px; --radius-lg: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a; --surface: #252522; --surface2: #2e2e2b;
+        --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.2);
+        --text: #e8e6df; --text2: #9e9c96; --text3: #65645f;
+        --red-bg: #3d1414; --red-text: #F09595; --red-border: #A32D2D;
+        --green-bg: #1a2e0a; --green-text: #C0DD97; --green-border: #3B6D11;
+        --blue-bg: #0c2240; --blue-text: #85B7EB; --blue-border: #185FA5;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+    .sub { font-size: 14px; color: var(--text2); margin-bottom: 2rem; }
 
-  header {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
-    height: 60px; position: sticky; top: 0; z-index: 100;
-  }
-  .logo { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); display: flex; align-items: center; gap: 8px; user-select: none; cursor: default; }
-  .logo-icon { width: 28px; height: 28px; background: var(--text); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-  .logo-icon svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; }
-  .sync-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--in-bg); color: var(--in-text); border: 1px solid var(--in-border); transition: all 0.3s; }
-  .sync-badge.syncing { background: var(--out-bg); color: var(--out-text); border-color: var(--out-border); }
-  .sync-badge.error { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
+    /* Alert */
+    .alert {
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      font-size: 13px; margin-bottom: 1rem; display: none;
+    }
+    .alert-err { background: var(--red-bg); color: var(--red-text); border: 0.5px solid var(--red-border); }
+    .alert-ok  { background: var(--green-bg); color: var(--green-text); border: 0.5px solid var(--green-border); }
 
-  main { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
-  .page { display: none; }
-  .page.active { display: block; }
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab {
+      padding: 7px 18px; border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2); background: var(--surface);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      color: var(--text2); transition: all .15s;
+    }
+    .tab.active { background: var(--text); color: var(--surface); border-color: transparent; }
 
-  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
-  .form-group { margin-bottom: 14px; }
-  .form-group:last-child { margin-bottom: 0; }
-  label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 5px; }
-  input[type="text"], input[type="password"] {
-    width: 100%; padding: 9px 12px; border: 1px solid var(--border);
-    border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    color: var(--text); background: var(--surface); outline: none; transition: border-color 0.15s;
-  }
-  input[type="text"]:focus, input[type="password"]:focus { border-color: var(--border2); }
-  input::placeholder { color: var(--text3); }
+    /* Sections */
+    .section { display: none; }
+    .section.active { display: block; }
 
-  .action-row { display: flex; gap: 8px; margin-bottom: 1.25rem; }
-  .action-btn {
-    flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border);
-    background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px;
-    font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; text-align: center;
-  }
-  .action-btn.out.active { background: var(--out-bg); color: var(--out-text); border-color: var(--out-border); }
-  .action-btn.in.active { background: var(--in-bg); color: var(--in-text); border-color: var(--in-border); }
+    /* Form area */
+    .form-area {
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem;
+    }
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .field { flex: 1; min-width: 150px; }
+    label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+    input, select {
+      width: 100%; padding: 8px 10px; border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2); background: var(--surface);
+      color: var(--text); font-size: 13px; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--blue-bg); }
 
-  /* Key/box grid */
-  .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
+    /* Stats */
+    .stats { display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .stat {
+      background: var(--surface2); border-radius: var(--radius-sm);
+      padding: .75rem 1rem; flex: 1; min-width: 100px;
+    }
+    .stat-label { font-size: 12px; color: var(--text2); margin-bottom: 2px; }
+    .stat-val { font-size: 24px; font-weight: 600; }
 
-  .item-tile {
-    border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 12px;
-    cursor: pointer; transition: all 0.15s; background: var(--surface); position: relative;
-  }
-  .item-tile:hover:not(.unavailable):not(.checked-out-tile) { border-color: var(--border2); background: var(--surface2); transform: translateY(-1px); }
-  .item-tile.selected { border-color: var(--text); background: var(--surface2); box-shadow: 0 0 0 2px var(--text); }
-  .item-tile.checked-out-tile { border-color: var(--out-border); background: var(--out-bg); cursor: not-allowed; }
-  .item-tile.checked-out-tile.can-checkin { cursor: pointer; }
-  .item-tile.checked-out-tile.can-checkin:hover { border-color: var(--out-text); transform: translateY(-1px); }
-  .item-tile.unavailable { opacity: 0.45; cursor: not-allowed; }
-  .item-tile.selected.checked-out-tile { box-shadow: 0 0 0 2px var(--out-text); border-color: var(--out-text); }
+    /* Item grid */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 2rem; }
 
-  .item-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
-  .item-tile.checked-out-tile .item-name { color: var(--out-text); }
+    /* Item cards */
+    .item-card {
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg); padding: 1rem 1.25rem; transition: border-color .15s;
+    }
+    .item-card.out { border-color: var(--red); }
+    .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+    .item-name { font-size: 13px; font-weight: 600; }
+    .badge {
+      font-size: 11px; font-weight: 500; padding: 3px 9px;
+      border-radius: 20px; white-space: nowrap; flex-shrink: 0; margin-left: 6px;
+    }
+    .badge-out { background: var(--red-bg); color: var(--red-text); }
+    .badge-in  { background: var(--green-bg); color: var(--green-text); }
+    .agent-info { font-size: 12px; color: var(--text2); margin-top: 4px; min-height: 16px; line-height: 1.4; }
 
-  .status-pill {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 10px; font-weight: 600; letter-spacing: 0.03em;
-    padding: 3px 8px; border-radius: 20px;
-  }
-  .pill-out { background: var(--out-bg); color: var(--out-text); border: 1px solid var(--out-border); }
-  .pill-in { background: var(--in-bg); color: var(--in-text); border: 1px solid var(--in-border); }
-  .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; display: inline-block; }
+    /* Buttons */
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 16px; border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2); background: var(--surface);
+      font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text);
+      transition: all .15s; margin-top: 10px; width: 100%;
+    }
+    .btn:hover { background: var(--surface2); }
+    .btn:active { transform: scale(0.98); }
+    .btn.checkout { background: var(--red); color: #fff; border-color: var(--red); }
+    .btn.checkout:hover { filter: brightness(0.9); }
+    .btn.checkin  { background: var(--green); color: #fff; border-color: var(--green); }
+    .btn.checkin:hover  { filter: brightness(0.9); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
 
-  .item-agent { font-size: 10px; color: var(--out-text); margin-top: 5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .item-address { font-size: 10px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* Log table */
+    .log-wrap {
+      background: var(--surface); border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+    }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .log-table th {
+      text-align: left; color: var(--text2); font-weight: 500;
+      font-size: 12px; padding: 10px 12px; border-bottom: 0.5px solid var(--border);
+      background: var(--surface2);
+    }
+    .log-table td { padding: 9px 12px; border-bottom: 0.5px solid var(--border); }
+    .log-table tr:last-child td { border: none; }
 
-  /* Strikethrough line for checked-out */
-  .item-tile.checked-out-tile::after {
-    content: ''; position: absolute; left: 12px; right: 12px; top: 22px;
-    height: 1.5px; background: var(--out-border); border-radius: 2px;
-  }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+    .dot-out { background: var(--red); }
+    .dot-in  { background: var(--green); }
 
-  .hint-text { font-size: 11px; color: var(--text3); margin-top: 10px; text-align: center; }
+    .loading { text-align: center; color: var(--text2); font-size: 13px; padding: 2rem; }
+    .empty { text-align: center; color: var(--text3); font-size: 13px; padding: 2rem; }
 
-  .submit-btn {
-    width: 100%; padding: 12px; background: var(--text); color: white; border: none;
-    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-top: 4px;
-  }
-  .submit-btn:hover { opacity: 0.85; }
-  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .error-msg { font-size: 12px; color: var(--danger-text); margin-top: 8px; }
-
-  /* Modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 999; align-items: center; justify-content: center; }
-  .modal-overlay.show { display: flex; }
-  .modal { background: var(--surface); border-radius: 14px; padding: 1.75rem; width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
-  .modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .modal p { font-size: 13px; color: var(--text2); margin-bottom: 1rem; }
-  .modal-btns { display: flex; gap: 8px; margin-top: 1rem; }
-  .modal-btns button { flex: 1; padding: 9px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
-  .btn-cancel { background: none; border: 1px solid var(--border); color: var(--text2); }
-  .btn-cancel:hover { border-color: var(--border2); }
-  .btn-confirm { background: var(--text); border: none; color: white; }
-  .btn-confirm:hover { opacity: 0.85; }
-  .pw-error { font-size: 12px; color: var(--danger-text); margin-top: 6px; display: none; }
-
-  /* Admin */
-  .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
-  .admin-title { font-size: 18px; font-weight: 600; }
-  .exit-btn { font-size: 13px; font-weight: 500; color: var(--text2); background: none; border: 1px solid var(--border); border-radius: 7px; padding: 6px 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
-  .exit-btn:hover { border-color: var(--border2); color: var(--text); }
-  .admin-section { margin-bottom: 2rem; }
-  .items-admin-list { display: flex; flex-direction: column; gap: 8px; }
-  .admin-item-row { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
-  .admin-item-row input { flex: 1; border: 1px solid var(--border); border-radius: 7px; padding: 7px 10px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--surface2); outline: none; }
-  .admin-item-row input:focus { border-color: var(--border2); background: var(--surface); }
-  .del-btn { width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--border); background: none; color: var(--text3); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
-  .del-btn:hover { border-color: var(--danger-border); color: var(--danger-text); background: var(--danger-bg); }
-  .add-item-btn { width: 100%; padding: 9px; border: 1px dashed var(--border2); border-radius: 10px; background: none; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text3); cursor: pointer; margin-top: 8px; transition: all 0.15s; }
-  .add-item-btn:hover { border-color: var(--text2); color: var(--text2); background: var(--surface); }
-  .save-admin-btn { padding: 9px 20px; background: var(--text); color: white; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-top: 12px; }
-  .save-admin-btn:hover { opacity: 0.8; }
-  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
-
-  /* Log */
-  .log-filters { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
-  .filter-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; }
-  .filter-btn.active { background: var(--text); color: white; border-color: var(--text); }
-  .refresh-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; margin-bottom: 12px; }
-  .refresh-btn:hover { border-color: var(--border2); color: var(--text); }
-  .log-entry { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
-  .log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .dot-out { background: var(--out-text); }
-  .dot-in { background: var(--in-text); }
-  .log-info { flex: 1; min-width: 0; }
-  .log-name { font-size: 13px; font-weight: 600; color: var(--text); }
-  .log-detail { font-size: 12px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .log-meta { text-align: right; flex-shrink: 0; }
-  .log-time { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; margin-top: 4px; }
-  .log-cat { font-size: 11px; color: var(--text3); margin-top: 2px; }
-  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
-  .loading-overlay { text-align: center; padding: 2rem; color: var(--text3); font-size: 14px; }
-
-  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; font-size: 13px; font-weight: 500; padding: 10px 20px; border-radius: 30px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 9999; white-space: nowrap; }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @media (max-width: 480px) { header { padding: 0 1rem; } main { padding: 1.25rem 1rem; } .items-grid { grid-template-columns: repeat(2, 1fr); } }
-</style>
+    /* Responsive */
+    @media (max-width: 480px) {
+      body { padding: 1.25rem .75rem; }
+      h1 { font-size: 20px; }
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
+<div class="container">
+  <h1>Key &amp; Lockbox Tracker</h1>
+  <p class="sub">Real-time status synced to Google Sheets</p>
 
-<header>
-  <div class="logo" id="logoBtn">
-    <div class="logo-icon">
-      <svg viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="8" rx="1"/><path d="M5 7V5a3 3 0 016 0v2"/></svg>
-    </div>
-    <span>Lockbox Tracker</span>
-  </div>
-  <div class="sync-badge" id="syncBadge">Live</div>
-</header>
+  <div id="alertBox" class="alert"></div>
 
-<main>
-  <!-- FORM PAGE -->
-  <div class="page active" id="page-form">
-
-    <!-- Category selector -->
-    <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
-      <button class="action-btn out active" id="cat-supra" onclick="setCategory('supra')" style="flex:1;font-size:14px;padding:11px;">🔑 Supra lockbox</button>
-      <button class="action-btn in" id="cat-cont" onclick="setCategory('cont')" style="flex:1;font-size:14px;padding:11px;">📦 Contractor box</button>
-    </div>
-
-    <!-- Agent info -->
-    <div class="card">
-      <div class="section-label">Agent info</div>
-      <div class="form-group">
-        <label>Agent name</label>
-        <input type="text" id="f-agent" placeholder="e.g. Maria Santos" />
-      </div>
-      <div class="form-group">
-        <label>Listing address</label>
-        <input type="text" id="f-address" placeholder="e.g. 123 Burnham St, Baguio City" />
-      </div>
-    </div>
-
-    <!-- Check out / Check in toggle -->
-    <div class="card">
-      <div class="section-label">Action</div>
-      <div class="action-row">
-        <button class="action-btn out active" id="action-out" onclick="setAction('out')">Check out</button>
-        <button class="action-btn in" id="action-in" onclick="setAction('in')">Check in</button>
-      </div>
-
-      <div class="section-label" id="items-label">Select key</div>
-      <div class="items-grid" id="items-grid">
-        <div class="loading-overlay">Loading availability…</div>
-      </div>
-      <div class="hint-text" id="hint-text">Only available keys can be checked out. Only checked-out keys can be checked in.</div>
-    </div>
-
-    <div class="error-msg" id="form-error" style="display:none;"></div>
-    <button class="submit-btn" onclick="submitForm()" id="submit-btn">Submit</button>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('lockbox')">Supra Lockboxes</button>
+    <button class="tab" onclick="switchTab('contract')">Contract Boxes</button>
+    <button class="tab" onclick="switchTab('log')">Activity Log</button>
   </div>
 
-  <!-- ADMIN PAGE -->
-  <div class="page" id="page-admin">
-    <div class="admin-header">
-      <div class="admin-title">Admin</div>
-      <button class="exit-btn" onclick="exitAdmin()">Exit admin</button>
-    </div>
-
-    <div class="admin-section">
-      <div class="section-label" style="margin-bottom:14px;">Supra lockbox keys</div>
-      <div class="items-admin-list" id="admin-supra-list"></div>
-      <button class="add-item-btn" onclick="addAdminItem('supra')">+ Add key</button><br/>
-      <button class="save-admin-btn" onclick="saveAdmin('supra')">Save supra keys</button>
-    </div>
-
-    <div class="admin-section">
-      <div class="section-label" style="margin-bottom:14px;">Contractor boxes</div>
-      <div class="items-admin-list" id="admin-cont-list"></div>
-      <button class="add-item-btn" onclick="addAdminItem('cont')">+ Add box</button><br/>
-      <button class="save-admin-btn" onclick="saveAdmin('cont')">Save contractor boxes</button>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="admin-section">
-      <div class="section-label" style="margin-bottom:14px;">Activity log</div>
-      <button class="refresh-btn" onclick="loadLog()">
-        <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 7A5 5 0 112 7"/><polyline points="12,4 12,7 9,7"/></svg>
-        Refresh
-      </button>
-      <div class="log-filters">
-        <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-        <button class="filter-btn" onclick="setFilter('out',this)">Checked out</button>
-        <button class="filter-btn" onclick="setFilter('in',this)">Checked in</button>
-        <button class="filter-btn" onclick="setFilter('supra',this)">Supra</button>
-        <button class="filter-btn" onclick="setFilter('contractor',this)">Contractor</button>
+  <!-- LOCKBOX SECTION -->
+  <div id="lockbox" class="section active">
+    <div class="form-area">
+      <div class="form-row">
+        <div class="field">
+          <label>Your Name</label>
+          <input type="text" id="lb-agent" placeholder="Agent name" />
+        </div>
+        <div class="field">
+          <label>Listing Address (for check out)</label>
+          <input type="text" id="lb-address" placeholder="e.g. 7255 Sagunto Place" />
+        </div>
       </div>
-      <div id="log-list"><div class="empty-state">Click refresh to load the log.</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Total Lockboxes</div>
+        <div class="stat-val" id="lb-total">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Checked Out</div>
+        <div class="stat-val" id="lb-out" style="color:var(--red)">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Available</div>
+        <div class="stat-val" id="lb-avail" style="color:var(--green)">—</div>
+      </div>
+    </div>
+    <div class="grid" id="lb-grid">
+      <div class="loading">Loading lockbox status…</div>
     </div>
   </div>
-</main>
 
-<!-- Password modal -->
-<div class="modal-overlay" id="pwModal">
-  <div class="modal">
-    <h3>Admin access</h3>
-    <p>Enter the password to continue.</p>
-    <input type="password" id="pwInput" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()" />
-    <div class="pw-error" id="pwError">Incorrect password. Try again.</div>
-    <div class="modal-btns">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-confirm" onclick="checkPassword()">Enter</button>
+  <!-- CONTRACT BOX SECTION -->
+  <div id="contract" class="section">
+    <div class="form-area">
+      <div class="form-row">
+        <div class="field">
+          <label>Your Name</label>
+          <input type="text" id="cb-agent" placeholder="Agent name" />
+        </div>
+        <div class="field">
+          <label>Listing Address (for check out)</label>
+          <input type="text" id="cb-address" placeholder="e.g. 2700 Patriot Dr" />
+        </div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Total Contract Boxes</div>
+        <div class="stat-val" id="cb-total">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Checked Out</div>
+        <div class="stat-val" id="cb-out" style="color:var(--red)">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Available</div>
+        <div class="stat-val" id="cb-avail" style="color:var(--green)">—</div>
+      </div>
+    </div>
+    <div class="grid" id="cb-grid">
+      <div class="loading">Loading contract box status…</div>
+    </div>
+  </div>
+
+  <!-- LOG SECTION -->
+  <div id="log" class="section">
+    <div class="log-wrap">
+      <div id="log-loading" class="loading">Loading activity log…</div>
+      <table class="log-table" id="log-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Agent</th>
+            <th>Address</th>
+            <th>Category</th>
+            <th>Item</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="log-body"></tbody>
+      </table>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTpMqUvW-yZBHuXBT41_r3CsQ3FUVx7sbI7Fju7xDn18-z2TO64XQeOap0VA6pwGE/exec';
-const ADMIN_PASSWORD = '0000';
-const POLL_MS = 15000;
+  // ─── CONFIG ────────────────────────────────────────────────────────────────
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxio4UIp1v5ge7XYCUesgWA6q2UQI-c7BUTwqsGEj1v-i2qXnF-VMMxZdZKO5ZbHz9U/exec';
 
-const defaultItems = {
-  supra: ['Key #101','Key #102','Key #103','Key #104','Key #105'],
-  cont:  ['Box #1','Box #2','Box #3','Box #4']
-};
+  // Edit these arrays to add/remove lockboxes or contract boxes
+  const LOCKBOXES = [
+    { id: 'lb_33978394', name: 'Lockbox #33978394' },
+    { id: 'lb_33713526', name: 'Lockbox #33713526' },
+    { id: 'lb_33916196', name: 'Lockbox #33916196' },
+    { id: 'lb_33818149', name: 'Lockbox #33818149' },
+    { id: 'lb_33978406', name: 'Lockbox #33978406' },
+    { id: 'lb_33836356', name: 'Lockbox #33836356' },
+    { id: 'lb_33978401', name: 'Lockbox #33978401' },
+    { id: 'lb_34358979', name: 'Lockbox #34358979' },
+    { id: 'lb_33154292', name: 'Lockbox #33154292' },
+  ];
 
-let state = {
-  category: 'supra',
-  action: 'out',
-  selected: null,
-  items: JSON.parse(localStorage.getItem('lb_items') || 'null') || defaultItems,
-  status: {}   // keyed by "supra_0", "cont_2", etc.
-               // value: { out: true, by: "Agent Name", address: "..." } or { out: false }
-};
+  const CONTRACT_BOXES = [
+    { id: 'cb_1', name: 'Contract Box #1' },
+    { id: 'cb_2', name: 'Contract Box #2' },
+    { id: 'cb_3', name: 'Contract Box #3' },
+    { id: 'cb_4', name: 'Contract Box #4' },
+  ];
+  // ───────────────────────────────────────────────────────────────────────────
 
-let logData = [], logFilter = 'all';
-let logoClicks = 0, logoTimer = null, pollTimer = null;
+  let status = {};
+  let pending = {}; // optimistic lock while request is in flight
 
-// ── Local persistence for items config only ───────────────
-function saveItemsLocal() {
-  localStorage.setItem('lb_items', JSON.stringify(state.items));
-}
-
-// ── Sync badge ────────────────────────────────────────────
-function setBadge(mode) {
-  const b = document.getElementById('syncBadge');
-  b.className = 'sync-badge' + (mode==='syncing'?' syncing':mode==='error'?' error':'');
-  b.textContent = mode==='syncing' ? 'Syncing…' : mode==='error' ? 'Offline' : 'Live';
-}
-
-// ── Pull status from Google Sheet ─────────────────────────
-async function pullStatus() {
-  try {
-    setBadge('syncing');
-    const res = await fetch(SCRIPT_URL + '?type=status&ts=' + Date.now());
-    const data = await res.json();
-    state.status = data || {};
-    renderItems();
-    setBadge('live');
-  } catch(e) {
-    setBadge('error');
-  }
-}
-
-// ── Push status to Google Sheet ───────────────────────────
-async function pushStatus() {
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'status', status: state.status })
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  function switchTab(t) {
+    document.querySelectorAll('.tab').forEach((el, i) => {
+      const tabs = ['lockbox', 'contract', 'log'];
+      el.classList.toggle('active', tabs[i] === t);
     });
-  } catch(e) { /* silent */ }
-}
-
-function startPolling() {
-  pullStatus();
-  pollTimer = setInterval(pullStatus, POLL_MS);
-}
-
-// ── Logo triple-click → admin ─────────────────────────────
-document.getElementById('logoBtn').addEventListener('click', () => {
-  logoClicks++;
-  clearTimeout(logoTimer);
-  logoTimer = setTimeout(() => { logoClicks = 0; }, 700);
-  if (logoClicks >= 3) { logoClicks = 0; openModal(); }
-});
-
-function openModal() {
-  document.getElementById('pwInput').value = '';
-  document.getElementById('pwError').style.display = 'none';
-  document.getElementById('pwModal').classList.add('show');
-  setTimeout(() => document.getElementById('pwInput').focus(), 100);
-}
-function closeModal() { document.getElementById('pwModal').classList.remove('show'); }
-
-function checkPassword() {
-  if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
-    closeModal();
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-admin').classList.add('active');
-    renderAdmin();
-  } else {
-    document.getElementById('pwError').style.display = 'block';
-    document.getElementById('pwInput').value = '';
-    document.getElementById('pwInput').focus();
+    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+    document.getElementById(t).classList.add('active');
+    if (t === 'log') loadLog();
   }
-}
 
-function exitAdmin() {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-form').classList.add('active');
-}
+  // ── Alert helper ───────────────────────────────────────────────────────────
+  function showAlert(msg, type) {
+    const el = document.getElementById('alertBox');
+    el.textContent = msg;
+    el.className = 'alert ' + (type === 'ok' ? 'alert-ok' : 'alert-err');
+    el.style.display = 'block';
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.display = 'none'; }, 4500);
+  }
 
-// ── Category / action ─────────────────────────────────────
-function setCategory(cat) {
-  state.category = cat; state.selected = null;
-  document.getElementById('cat-supra').className = 'action-btn out' + (cat==='supra'?' active':'');
-  document.getElementById('cat-cont').className  = 'action-btn in'  + (cat==='cont' ?' active':'');
-  document.getElementById('items-label').textContent = cat==='supra' ? 'Select key' : 'Select box';
-  renderItems();
-}
-
-function setAction(action) {
-  state.action = action; state.selected = null;
-  document.getElementById('action-out').className = 'action-btn out' + (action==='out'?' active':'');
-  document.getElementById('action-in').className  = 'action-btn in'  + (action==='in' ?' active':'');
-  renderItems();
-}
-
-// ── Render items with full availability cycle ─────────────
-function renderItems() {
-  const grid = document.getElementById('items-grid');
-  grid.innerHTML = '';
-
-  state.items[state.category].forEach((name, i) => {
-    const key   = state.category + '_' + i;
-    const st    = state.status[key] || { out: false };
-    const isOut = !!st.out;
-
-    // Can this tile be selected given the current action?
-    // Check out → only AVAILABLE keys selectable
-    // Check in  → only CHECKED OUT keys selectable
-    const canSelect = state.action === 'out' ? !isOut : isOut;
-    const isSelected = state.selected === key;
-
-    const div = document.createElement('div');
-
-    let cls = 'item-tile';
-    if (isOut) cls += ' checked-out-tile';
-    if (isOut && state.action === 'in') cls += ' can-checkin';
-    if (!canSelect) cls += ' unavailable';
-    if (isSelected) cls += ' selected';
-    div.className = cls;
-
-    // Status pill
-    const pill = isOut
-      ? `<span class="status-pill pill-out"><span class="pill-dot"></span>Checked out</span>`
-      : `<span class="status-pill pill-in"><span class="pill-dot"></span>Available</span>`;
-
-    // Who has it
-    const agentLine  = isOut && st.by      ? `<div class="item-agent">👤 ${st.by}</div>`      : '';
-    const addrLine   = isOut && st.address  ? `<div class="item-address">📍 ${st.address}</div>` : '';
-
-    div.innerHTML = `<div class="item-name">${name}</div>${pill}${agentLine}${addrLine}`;
-
-    if (canSelect) {
-      div.onclick = () => selectItem(key);
+  // ── Load status from sheet ─────────────────────────────────────────────────
+  async function loadStatus() {
+    try {
+      const r = await fetch(SHEET_URL + '?type=status&t=' + Date.now());
+      status = (await r.json()) || {};
+    } catch (e) {
+      status = {};
     }
-    grid.appendChild(div);
-  });
-}
-
-function selectItem(key) {
-  state.selected = state.selected === key ? null : key;
-  renderItems();
-}
-
-// ── Form submit ───────────────────────────────────────────
-function showError(msg) { const e=document.getElementById('form-error'); e.textContent=msg; e.style.display='block'; }
-function hideError() { document.getElementById('form-error').style.display='none'; }
-function showToast(msg) {
-  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 3000);
-}
-
-async function submitForm() {
-  hideError();
-  const agent   = document.getElementById('f-agent').value.trim();
-  const address = document.getElementById('f-address').value.trim();
-
-  if (!agent)           { showError('Please enter the agent name.'); return; }
-  if (!address)         { showError('Please enter the listing address.'); return; }
-  if (!state.selected)  { showError('Please select a ' + (state.category==='supra'?'key':'box') + '.'); return; }
-
-  const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Saving…';
-
-  const idx           = parseInt(state.selected.split('_')[1]);
-  const itemName      = state.items[state.category][idx];
-  const categoryLabel = state.category==='supra' ? 'Supra Lockbox' : 'Contractor Box';
-  const actionLabel   = state.action==='out' ? 'Check Out' : 'Check In';
-
-  // Update local status immediately for snappy UI
-  state.status[state.selected] = state.action==='out'
-    ? { out: true,  by: agent, address }
-    : { out: false };
-
-  renderItems();
-
-  try {
-    // 1. Log the transaction
-    await fetch(SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent, address, category: categoryLabel, item: itemName, action: actionLabel })
-    });
-    // 2. Push updated status map
-    await pushStatus();
-
-    document.getElementById('f-agent').value   = '';
-    document.getElementById('f-address').value = '';
-    state.selected = null;
-    renderItems();
-
-    const verb = state.action==='out' ? 'checked out to' : 'checked in by';
-    showToast(`${itemName} ${verb} ${agent}`);
-  } catch(e) {
-    showError('Failed to save. Please check your connection.');
+    renderGrids();
   }
 
-  btn.disabled = false;
-  btn.innerHTML = 'Submit';
-}
-
-// ── Activity log ──────────────────────────────────────────
-async function loadLog() {
-  document.getElementById('log-list').innerHTML = '<div class="loading-overlay">Loading…</div>';
-  try {
-    const res  = await fetch(SCRIPT_URL + '?ts=' + Date.now());
-    const rows = await res.json();
-    logData = rows.slice(1).reverse();
-    renderLog();
-  } catch(e) {
-    document.getElementById('log-list').innerHTML = '<div class="empty-state">Could not load log.</div>';
+  // ── Render both grids ──────────────────────────────────────────────────────
+  function renderGrids() {
+    renderGrid('lb-grid', LOCKBOXES, 'lb-total', 'lb-out', 'lb-avail', 'Supra Lockbox', 'lb');
+    renderGrid('cb-grid', CONTRACT_BOXES, 'cb-total', 'cb-out', 'cb-avail', 'Contract Box', 'cb');
   }
-}
 
-function setFilter(f, btn) {
-  logFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderLog();
-}
+  function renderGrid(gridId, items, totalId, outId, availId, category, prefix) {
+    const grid = document.getElementById(gridId);
+    let outCount = 0;
+    grid.innerHTML = '';
 
-function renderLog() {
-  const list = document.getElementById('log-list');
-  let rows = logData;
-  if (logFilter==='out')        rows = rows.filter(r=>(r[5]||'').toLowerCase().includes('out'));
-  else if (logFilter==='in')    rows = rows.filter(r=>(r[5]||'').toLowerCase().includes('in') && !(r[5]||'').toLowerCase().includes('out'));
-  else if (logFilter==='supra') rows = rows.filter(r=>(r[3]||'').toLowerCase().includes('supra'));
-  else if (logFilter==='contractor') rows = rows.filter(r=>(r[3]||'').toLowerCase().includes('contractor'));
+    items.forEach(item => {
+      const s = status[item.id];
+      const isPending = !!pending[item.id];
+      const isOut = s && s.out;
+      if (isOut) outCount++;
 
-  if (!rows.length) { list.innerHTML='<div class="empty-state">No entries found.</div>'; return; }
+      const card = document.createElement('div');
+      card.className = 'item-card' + (isOut ? ' out' : '');
+      card.id = 'card-' + item.id;
 
-  list.innerHTML = rows.map(r => {
-    const [ts, agent, address, category, item, action] = r;
-    const isOut = (action||'').toLowerCase().includes('out');
-    return `<div class="log-entry">
-      <div class="log-dot ${isOut?'dot-out':'dot-in'}"></div>
-      <div class="log-info">
-        <div class="log-name">${agent||'—'} &mdash; ${item||'—'}</div>
-        <div class="log-detail">${address||'—'}</div>
-      </div>
-      <div class="log-meta">
-        <span class="status-pill ${isOut?'pill-out':'pill-in'}">${isOut?'Out':'In'}</span>
-        <div class="log-time">${formatTime(ts)}</div>
-        <div class="log-cat">${category||''}</div>
-      </div>
-    </div>`;
-  }).join('');
-}
+      const agentLine = isOut
+        ? [s.by, s.address].filter(Boolean).join(' · ')
+        : 'Ready to check out';
 
-function formatTime(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  if (isNaN(d)) return ts;
-  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-}
-
-// ── Admin ─────────────────────────────────────────────────
-function renderAdmin() {
-  ['supra','cont'].forEach(cat => {
-    const list = document.getElementById('admin-'+cat+'-list');
-    list.innerHTML = '';
-    state.items[cat].forEach((name, i) => {
-      const row = document.createElement('div');
-      row.className = 'admin-item-row';
-      row.innerHTML = `<input type="text" value="${name}" placeholder="Item name" /><button class="del-btn" onclick="deleteAdminItem('${cat}',${i})">×</button>`;
-      list.appendChild(row);
+      card.innerHTML = `
+        <div class="item-header">
+          <div class="item-name">${item.name}</div>
+          <span class="badge ${isOut ? 'badge-out' : 'badge-in'}">${isOut ? 'Out' : 'Available'}</span>
+        </div>
+        <div class="agent-info">${agentLine}</div>
+        <button
+          class="btn ${isOut ? 'checkin' : 'checkout'}"
+          ${isPending ? 'disabled' : ''}
+          onclick="doAction('${item.id}','${item.name}','${isOut ? 'Check In' : 'Check Out'}','${category}','${prefix}')"
+        >${isPending ? 'Saving…' : (isOut ? 'Check In' : 'Check Out')}</button>
+      `;
+      grid.appendChild(card);
     });
-  });
-}
 
-function addAdminItem(cat) {
-  state.items[cat].push(cat==='supra'?'New Key':'New Box');
-  saveItemsLocal(); renderAdmin(); renderItems();
-}
+    document.getElementById(totalId).textContent = items.length;
+    document.getElementById(outId).textContent = outCount;
+    document.getElementById(availId).textContent = items.length - outCount;
+  }
 
-function deleteAdminItem(cat, idx) {
-  state.items[cat].splice(idx, 1);
-  saveItemsLocal(); renderAdmin(); renderItems();
-}
+  // ── Check out / check in ───────────────────────────────────────────────────
+  async function doAction(statusKey, itemName, action, category, prefix) {
+    const agentEl  = document.getElementById(prefix + '-agent');
+    const addrEl   = document.getElementById(prefix + '-address');
+    const agent    = agentEl.value.trim();
+    const address  = addrEl.value.trim();
 
-function saveAdmin(cat) {
-  document.querySelectorAll(`#admin-${cat}-list input`).forEach((inp,i) => {
-    if (inp.value.trim()) state.items[cat][i] = inp.value.trim();
-  });
-  saveItemsLocal(); renderItems(); showToast('Saved!');
-}
+    if (!agent) {
+      showAlert('Please enter your name before checking ' + (action === 'Check Out' ? 'out.' : 'in.'), 'err');
+      agentEl.focus();
+      return;
+    }
+    if (action === 'Check Out' && !address) {
+      showAlert('Please enter a listing address for the check out.', 'err');
+      addrEl.focus();
+      return;
+    }
 
-// ── Boot ──────────────────────────────────────────────────
-startPolling();
+    // Optimistic UI update
+    pending[statusKey] = true;
+    if (action === 'Check Out') {
+      status[statusKey] = { out: true, by: agent, address };
+    } else {
+      status[statusKey] = { out: false };
+    }
+    renderGrids();
+
+    const payload = {
+      agent,
+      address: address || 'Home',
+      category,
+      item: itemName,
+      action,
+      statusKey,
+    };
+
+    try {
+      const r = await fetch(SHEET_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const json = await r.json();
+      if (!json.success) throw new Error('Server returned failure');
+      showAlert(
+        `${itemName} ${action === 'Check Out' ? 'checked out to ' + agent : 'checked in'} successfully.`,
+        'ok'
+      );
+      if (action === 'Check Out') addrEl.value = '';
+    } catch (e) {
+      // Rollback
+      showAlert('Failed to sync. Check your internet connection and try again.', 'err');
+      if (action === 'Check Out') {
+        status[statusKey] = { out: false };
+      } else {
+        status[statusKey] = { out: true };
+      }
+      renderGrids();
+    } finally {
+      delete pending[statusKey];
+      renderGrids();
+    }
+  }
+
+  // ── Load activity log ──────────────────────────────────────────────────────
+  async function loadLog() {
+    const loading = document.getElementById('log-loading');
+    const table   = document.getElementById('log-table');
+    loading.style.display = 'block';
+    table.style.display   = 'none';
+
+    try {
+      const r    = await fetch(SHEET_URL + '?t=' + Date.now());
+      const rows = await r.json();
+      const tbody = document.getElementById('log-body');
+      tbody.innerHTML = '';
+
+      const data = rows.slice(1).reverse(); // skip header, newest first
+      if (!data.length) {
+        loading.textContent = 'No activity yet.';
+        return;
+      }
+
+      data.forEach(row => {
+        if (!row[1]) return;
+        const isOut = row[5] === 'Check Out';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color:var(--text2);white-space:nowrap;font-size:12px">${row[0] || ''}</td>
+          <td>${row[1] || ''}</td>
+          <td>${row[2] || ''}</td>
+          <td style="color:var(--text2)">${row[3] || ''}</td>
+          <td>${row[4] || ''}</td>
+          <td>
+            <span class="dot ${isOut ? 'dot-out' : 'dot-in'}"></span>
+            ${row[5] || ''}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      loading.style.display = 'none';
+      table.style.display   = 'table';
+    } catch (e) {
+      loading.textContent = 'Failed to load log. Try refreshing.';
+    }
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadStatus();
+
+  // Auto-refresh status every 60 seconds
+  setInterval(loadStatus, 60000);
 </script>
 </body>
 </html>
