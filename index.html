@@ -18,19 +18,18 @@
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
   header {
     background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 0 2rem; display: flex; align-items: center; height: 60px;
-    position: sticky; top: 0; z-index: 100;
+    padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
+    height: 60px; position: sticky; top: 0; z-index: 100;
   }
-  .logo {
-    font-size: 15px; font-weight: 600; letter-spacing: -0.02em;
-    color: var(--text); display: flex; align-items: center; gap: 8px;
-    user-select: none; cursor: default;
-  }
-  .logo-icon {
-    width: 28px; height: 28px; background: var(--text); border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-  }
+  .logo { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); display: flex; align-items: center; gap: 8px; user-select: none; cursor: default; }
+  .logo-icon { width: 28px; height: 28px; background: var(--text); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
   .logo-icon svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; }
+  .sync-indicator { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 5px; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.3s; }
+  .sync-dot.synced { background: #1A6640; }
+  .sync-dot.syncing { background: #92480A; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
   main { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
   .page { display: none; }
   .page.active { display: block; }
@@ -47,11 +46,7 @@
   input[type="text"]:focus, input[type="password"]:focus { border-color: var(--border2); }
   input::placeholder { color: var(--text3); }
   .action-row { display: flex; gap: 8px; margin-bottom: 1rem; }
-  .action-btn {
-    flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border);
-    background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px;
-    font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; text-align: center;
-  }
+  .action-btn { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; text-align: center; }
   .action-btn.out.active { background: var(--out-bg); color: var(--out-text); border-color: var(--out-border); }
   .action-btn.in.active { background: var(--in-bg); color: var(--in-text); border-color: var(--in-border); }
   .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
@@ -64,19 +59,15 @@
   .pill-out { background: var(--out-bg); color: var(--out-text); border: 1px solid var(--out-border); }
   .pill-in { background: var(--in-bg); color: var(--in-text); border: 1px solid var(--in-border); }
   .item-agent { font-size: 10px; color: var(--text3); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .submit-btn {
-    width: 100%; padding: 12px; background: var(--text); color: white; border: none;
-    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px;
-    font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-top: 4px;
-  }
+  .submit-btn { width: 100%; padding: 12px; background: var(--text); color: white; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-top: 4px; }
   .submit-btn:hover { opacity: 0.85; }
   .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .error-msg { font-size: 12px; color: var(--danger-text); margin-top: 8px; }
- 
+
   /* Modal */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 999; align-items: center; justify-content: center; }
   .modal-overlay.show { display: flex; }
-  .modal { background: var(--surface); border-radius: 14px; padding: 1.75rem; width: 320px; }
+  .modal { background: var(--surface); border-radius: 14px; padding: 1.75rem; width: 320px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
   .modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
   .modal p { font-size: 13px; color: var(--text2); margin-bottom: 1rem; }
   .modal-btns { display: flex; gap: 8px; margin-top: 1rem; }
@@ -86,15 +77,11 @@
   .btn-confirm { background: var(--text); border: none; color: white; }
   .btn-confirm:hover { opacity: 0.85; }
   .pw-error { font-size: 12px; color: var(--danger-text); margin-top: 6px; display: none; }
- 
+
   /* Admin */
   .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
   .admin-title { font-size: 18px; font-weight: 600; }
-  .exit-btn {
-    font-size: 13px; font-weight: 500; color: var(--text2); background: none;
-    border: 1px solid var(--border); border-radius: 7px; padding: 6px 14px;
-    cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s;
-  }
+  .exit-btn { font-size: 13px; font-weight: 500; color: var(--text2); background: none; border: 1px solid var(--border); border-radius: 7px; padding: 6px 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; }
   .exit-btn:hover { border-color: var(--border2); color: var(--text); }
   .admin-section { margin-bottom: 2rem; }
   .items-admin-list { display: flex; flex-direction: column; gap: 8px; }
@@ -108,7 +95,7 @@
   .save-admin-btn { padding: 9px 20px; background: var(--text); color: white; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-top: 12px; }
   .save-admin-btn:hover { opacity: 0.8; }
   .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
- 
+
   /* Log */
   .log-filters { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
   .filter-btn { padding: 6px 14px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; }
@@ -127,7 +114,7 @@
   .log-cat { font-size: 11px; color: var(--text3); margin-top: 2px; }
   .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
   .loading-overlay { text-align: center; padding: 2rem; color: var(--text3); font-size: 14px; }
- 
+
   .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; font-size: 13px; font-weight: 500; padding: 10px 20px; border-radius: 30px; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 9999; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
@@ -136,7 +123,7 @@
 </style>
 </head>
 <body>
- 
+
 <header>
   <div class="logo" id="logoBtn">
     <div class="logo-icon">
@@ -144,8 +131,12 @@
     </div>
     <span>Lockbox Tracker</span>
   </div>
+  <div class="sync-indicator">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncText">Loading...</span>
+  </div>
 </header>
- 
+
 <main>
   <!-- FORM PAGE -->
   <div class="page active" id="page-form">
@@ -157,11 +148,11 @@
       <div class="section-label">Agent info</div>
       <div class="form-group">
         <label>Agent name</label>
-        <input type="text" id="f-agent" placeholder="e.g. John Doe" />
+        <input type="text" id="f-agent" placeholder="e.g. Maria Santos" />
       </div>
       <div class="form-group">
         <label>Listing address</label>
-        <input type="text" id="f-address" placeholder="e.g. 123 Blossom St, A City" />
+        <input type="text" id="f-address" placeholder="e.g. 123 Burnham St, Baguio City" />
       </div>
     </div>
     <div class="card">
@@ -171,35 +162,31 @@
         <button class="action-btn in" id="action-in" onclick="setAction('in')">Check in</button>
       </div>
       <div class="section-label" id="items-label">Select key</div>
-      <div class="items-grid" id="items-grid"></div>
+      <div class="items-grid" id="items-grid"><div class="loading-overlay">Loading status...</div></div>
     </div>
     <div class="error-msg" id="form-error" style="display:none;"></div>
     <button class="submit-btn" onclick="submitForm()" id="submit-btn">Submit</button>
   </div>
- 
+
   <!-- ADMIN PAGE -->
   <div class="page" id="page-admin">
     <div class="admin-header">
       <div class="admin-title">Admin</div>
       <button class="exit-btn" onclick="exitAdmin()">Exit admin</button>
     </div>
- 
     <div class="admin-section">
       <div class="section-label" style="margin-bottom:14px;">Supra lockbox keys</div>
       <div class="items-admin-list" id="admin-supra-list"></div>
       <button class="add-item-btn" onclick="addAdminItem('supra')">+ Add key</button><br/>
       <button class="save-admin-btn" onclick="saveAdmin('supra')">Save supra keys</button>
     </div>
- 
     <div class="admin-section">
       <div class="section-label" style="margin-bottom:14px;">Contractor boxes</div>
       <div class="items-admin-list" id="admin-cont-list"></div>
       <button class="add-item-btn" onclick="addAdminItem('cont')">+ Add box</button><br/>
       <button class="save-admin-btn" onclick="saveAdmin('cont')">Save contractor boxes</button>
     </div>
- 
     <div class="divider"></div>
- 
     <div class="admin-section">
       <div class="section-label" style="margin-bottom:14px;">Activity log</div>
       <button class="refresh-btn" onclick="loadLog()">
@@ -217,7 +204,7 @@
     </div>
   </div>
 </main>
- 
+
 <!-- Password modal -->
 <div class="modal-overlay" id="pwModal">
   <div class="modal">
@@ -231,49 +218,94 @@
     </div>
   </div>
 </div>
- 
+
 <div class="toast" id="toast"></div>
- 
+
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRlODd_VbYwudEviG0ipqZCZXYtT7ei1iZxRS8oMwAgg6rojgCabyaLS7C-6m8EVz3/exec';
 const ADMIN_PASSWORD = '0000';
- 
+const SYNC_INTERVAL = 30000; // 30 seconds
+
 const defaultItems = {
   supra: ['Key #101','Key #102','Key #103','Key #104','Key #105'],
   cont: ['Box #1','Box #2','Box #3','Box #4']
 };
- 
+
 let state = {
   category: 'supra', action: 'out', selected: null,
   items: JSON.parse(localStorage.getItem('lb_items') || 'null') || defaultItems,
-  status: JSON.parse(localStorage.getItem('lb_status') || '{}')
+  status: {}
 };
- 
+
 let logData = [], logFilter = 'all';
 let logoClicks = 0, logoTimer = null;
- 
-function saveLocal() {
-  localStorage.setItem('lb_items', JSON.stringify(state.items));
-  localStorage.setItem('lb_status', JSON.stringify(state.status));
+let syncTimer = null;
+
+// --- SYNC DOT ---
+function setSyncState(s) {
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  dot.className = 'sync-dot ' + s;
+  txt.textContent = s === 'synced' ? 'Live' : s === 'syncing' ? 'Syncing...' : 'Offline';
 }
- 
-// Triple-click logo = open admin modal
+
+// --- FETCH STATUS FROM SHEETS ---
+async function fetchStatus() {
+  setSyncState('syncing');
+  try {
+    const res = await fetch(SCRIPT_URL + '?type=status&ts=' + Date.now());
+    const rows = await res.json();
+    const newStatus = {};
+    rows.slice(1).forEach(r => {
+      // r = [key, isOut, by, address]
+      if (r[0]) {
+        newStatus[r[0]] = {
+          out: r[1] === true || r[1] === 'TRUE' || r[1] === 'true',
+          by: r[2] || '',
+          address: r[3] || ''
+        };
+      }
+    });
+    state.status = newStatus;
+    renderItems();
+    setSyncState('synced');
+  } catch(e) {
+    setSyncState('offline');
+  }
+}
+
+// --- PUSH STATUS TO SHEETS ---
+async function pushStatus(key, isOut, by, address) {
+  await fetch(SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'status_update', key, isOut, by: by||'', address: address||'' })
+  });
+}
+
+// --- AUTO SYNC ---
+function startAutoSync() {
+  clearInterval(syncTimer);
+  syncTimer = setInterval(fetchStatus, SYNC_INTERVAL);
+}
+
+// --- LOGO TRIPLE CLICK ---
 document.getElementById('logoBtn').addEventListener('click', () => {
   logoClicks++;
   clearTimeout(logoTimer);
   logoTimer = setTimeout(() => { logoClicks = 0; }, 700);
   if (logoClicks >= 3) { logoClicks = 0; openModal(); }
 });
- 
+
 function openModal() {
   document.getElementById('pwInput').value = '';
   document.getElementById('pwError').style.display = 'none';
   document.getElementById('pwModal').classList.add('show');
   setTimeout(() => document.getElementById('pwInput').focus(), 100);
 }
- 
+
 function closeModal() { document.getElementById('pwModal').classList.remove('show'); }
- 
+
 function checkPassword() {
   if (document.getElementById('pwInput').value === ADMIN_PASSWORD) {
     closeModal();
@@ -286,12 +318,12 @@ function checkPassword() {
     document.getElementById('pwInput').focus();
   }
 }
- 
+
 function exitAdmin() {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-form').classList.add('active');
 }
- 
+
 function setCategory(cat) {
   state.category = cat; state.selected = null;
   document.getElementById('cat-supra').className = 'action-btn out' + (cat==='supra'?' active':'');
@@ -299,14 +331,14 @@ function setCategory(cat) {
   document.getElementById('items-label').textContent = cat==='supra' ? 'Select key' : 'Select box';
   renderItems();
 }
- 
+
 function setAction(action) {
   state.action = action; state.selected = null;
   document.getElementById('action-out').className = 'action-btn out' + (action==='out'?' active':'');
   document.getElementById('action-in').className = 'action-btn in' + (action==='in'?' active':'');
   renderItems();
 }
- 
+
 function renderItems() {
   const grid = document.getElementById('items-grid');
   grid.innerHTML = '';
@@ -327,19 +359,19 @@ function renderItems() {
     grid.appendChild(div);
   });
 }
- 
+
 function selectItem(key) {
   state.selected = state.selected === key ? null : key;
   renderItems();
 }
- 
+
 function showError(msg) { const e=document.getElementById('form-error'); e.textContent=msg; e.style.display='block'; }
 function hideError() { document.getElementById('form-error').style.display='none'; }
 function showToast(msg) {
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
- 
+
 async function submitForm() {
   hideError();
   const agent = document.getElementById('f-agent').value.trim();
@@ -347,39 +379,49 @@ async function submitForm() {
   if (!agent) { showError('Please enter the agent name.'); return; }
   if (!address) { showError('Please enter the listing address.'); return; }
   if (!state.selected) { showError('Please select a ' + (state.category==='supra'?'key':'box') + '.'); return; }
- 
+
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Saving...';
- 
+
   const idx = parseInt(state.selected.split('_')[1]);
   const itemName = state.items[state.category][idx];
   const categoryLabel = state.category==='supra' ? 'Supra Lockbox' : 'Contractor Box';
- 
+  const isOut = state.action === 'out';
+
   try {
+    // Save to log
     await fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent, address, category: categoryLabel, item: itemName, action: state.action==='out'?'Check Out':'Check In' })
+      body: JSON.stringify({ agent, address, category: categoryLabel, item: itemName, action: isOut ? 'Check Out' : 'Check In' })
     });
-    state.status[state.selected] = state.action==='out' ? { out:true, by:agent, address } : { out:false };
-    saveLocal();
+
+    // Save status
+    await pushStatus(state.selected, isOut, isOut ? agent : '', isOut ? address : '');
+
+    // Update local state
+    state.status[state.selected] = isOut ? { out: true, by: agent, address } : { out: false, by: '', address: '' };
+
     document.getElementById('f-agent').value = '';
     document.getElementById('f-address').value = '';
     state.selected = null;
     renderItems();
-    showToast(state.action==='out' ? `${itemName} checked out to ${agent}` : `${itemName} checked in by ${agent}`);
+    showToast(isOut ? `${itemName} checked out to ${agent}` : `${itemName} checked in by ${agent}`);
+    setSyncState('synced');
   } catch(e) {
     showError('Failed to save. Please check your connection.');
+    setSyncState('offline');
   }
+
   btn.disabled = false;
   btn.innerHTML = 'Submit';
 }
- 
+
 async function loadLog() {
   document.getElementById('log-list').innerHTML = '<div class="loading-overlay">Loading...</div>';
   try {
-    const res = await fetch(SCRIPT_URL + '?ts=' + Date.now());
+    const res = await fetch(SCRIPT_URL + '?type=log&ts=' + Date.now());
     const rows = await res.json();
     logData = rows.slice(1).reverse();
     renderLog();
@@ -387,14 +429,14 @@ async function loadLog() {
     document.getElementById('log-list').innerHTML = '<div class="empty-state">Could not load log.</div>';
   }
 }
- 
+
 function setFilter(f, btn) {
   logFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderLog();
 }
- 
+
 function renderLog() {
   const list = document.getElementById('log-list');
   let rows = logData;
@@ -402,7 +444,6 @@ function renderLog() {
   else if (logFilter==='in') rows=rows.filter(r=>(r[5]||'').toLowerCase().includes('in')&&!(r[5]||'').toLowerCase().includes('out'));
   else if (logFilter==='supra') rows=rows.filter(r=>(r[3]||'').toLowerCase().includes('supra'));
   else if (logFilter==='contractor') rows=rows.filter(r=>(r[3]||'').toLowerCase().includes('contractor'));
- 
   if (!rows.length) { list.innerHTML='<div class="empty-state">No entries found.</div>'; return; }
   list.innerHTML = rows.map(r => {
     const [ts, agent, address, category, item, action] = r;
@@ -421,14 +462,16 @@ function renderLog() {
     </div>`;
   }).join('');
 }
- 
+
 function formatTime(ts) {
   if (!ts) return '';
   const d = new Date(ts);
   if (isNaN(d)) return ts;
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
- 
+
+function saveLocal() { localStorage.setItem('lb_items', JSON.stringify(state.items)); }
+
 function renderAdmin() {
   ['supra','cont'].forEach(cat => {
     const list = document.getElementById('admin-'+cat+'-list');
@@ -441,25 +484,27 @@ function renderAdmin() {
     });
   });
 }
- 
+
 function addAdminItem(cat) {
   state.items[cat].push(cat==='supra'?'New Key':'New Box');
   saveLocal(); renderAdmin(); renderItems();
 }
- 
+
 function deleteAdminItem(cat, idx) {
   state.items[cat].splice(idx,1);
   saveLocal(); renderAdmin(); renderItems();
 }
- 
+
 function saveAdmin(cat) {
   document.querySelectorAll(`#admin-${cat}-list input`).forEach((inp,i) => {
     if (inp.value.trim()) state.items[cat][i] = inp.value.trim();
   });
   saveLocal(); renderItems(); showToast('Saved!');
 }
- 
-renderItems();
+
+// --- INIT ---
+fetchStatus();
+startAutoSync();
 </script>
 </body>
 </html>
