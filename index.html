@@ -24,11 +24,9 @@
   .logo { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); display: flex; align-items: center; gap: 8px; user-select: none; cursor: default; }
   .logo-icon { width: 28px; height: 28px; background: var(--text); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
   .logo-icon svg { width: 16px; height: 16px; fill: none; stroke: white; stroke-width: 2; stroke-linecap: round; }
-  .sync-indicator { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 5px; }
-  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); transition: background 0.3s; }
-  .sync-dot.synced { background: #1A6640; }
-  .sync-dot.syncing { background: #92480A; animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .sync-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: var(--in-bg); color: var(--in-text); border: 1px solid var(--in-border); transition: all 0.3s; }
+  .sync-badge.syncing { background: var(--out-bg); color: var(--out-text); border-color: var(--out-border); }
+  .sync-badge.error { background: var(--danger-bg); color: var(--danger-text); border-color: var(--danger-border); }
 
   main { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
   .page { display: none; }
@@ -46,7 +44,11 @@
   input[type="text"]:focus, input[type="password"]:focus { border-color: var(--border2); }
   input::placeholder { color: var(--text3); }
   .action-row { display: flex; gap: 8px; margin-bottom: 1rem; }
-  .action-btn { flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; text-align: center; }
+  .action-btn {
+    flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px;
+    font-weight: 500; color: var(--text2); cursor: pointer; transition: all 0.15s; text-align: center;
+  }
   .action-btn.out.active { background: var(--out-bg); color: var(--out-text); border-color: var(--out-border); }
   .action-btn.in.active { background: var(--in-bg); color: var(--in-text); border-color: var(--in-border); }
   .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
@@ -131,10 +133,7 @@
     </div>
     <span>Lockbox Tracker</span>
   </div>
-  <div class="sync-indicator">
-    <div class="sync-dot" id="syncDot"></div>
-    <span id="syncText">Loading...</span>
-  </div>
+  <div class="sync-badge" id="syncBadge">Live</div>
 </header>
 
 <main>
@@ -162,7 +161,7 @@
         <button class="action-btn in" id="action-in" onclick="setAction('in')">Check in</button>
       </div>
       <div class="section-label" id="items-label">Select key</div>
-      <div class="items-grid" id="items-grid"><div class="loading-overlay">Loading status...</div></div>
+      <div class="items-grid" id="items-grid"><div class="loading-overlay">Loading...</div></div>
     </div>
     <div class="error-msg" id="form-error" style="display:none;"></div>
     <button class="submit-btn" onclick="submitForm()" id="submit-btn">Submit</button>
@@ -222,9 +221,9 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRlODd_VbYwudEviG0ipqZCZXYtT7ei1iZxRS8oMwAgg6rojgCabyaLS7C-6m8EVz3/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTpMqUvW-yZBHuXBT41_r3CsQ3FUVx7sbI7Fju7xDn18-z2TO64XQeOap0VA6pwGE/exec';
 const ADMIN_PASSWORD = '0000';
-const SYNC_INTERVAL = 30000; // 30 seconds
+const POLL_INTERVAL = 15000; // 15 seconds
 
 const defaultItems = {
   supra: ['Key #101','Key #102','Key #103','Key #104','Key #105'],
@@ -239,57 +238,49 @@ let state = {
 
 let logData = [], logFilter = 'all';
 let logoClicks = 0, logoTimer = null;
-let syncTimer = null;
+let pollTimer = null;
 
-// --- SYNC DOT ---
-function setSyncState(s) {
-  const dot = document.getElementById('syncDot');
-  const txt = document.getElementById('syncText');
-  dot.className = 'sync-dot ' + s;
-  txt.textContent = s === 'synced' ? 'Live' : s === 'syncing' ? 'Syncing...' : 'Offline';
+// ── Sync badge ──────────────────────────────────────────
+function setBadge(mode) {
+  const b = document.getElementById('syncBadge');
+  b.className = 'sync-badge' + (mode === 'syncing' ? ' syncing' : mode === 'error' ? ' error' : '');
+  b.textContent = mode === 'syncing' ? 'Syncing…' : mode === 'error' ? 'Offline' : 'Live';
 }
 
-// --- FETCH STATUS FROM SHEETS ---
-async function fetchStatus() {
-  setSyncState('syncing');
+// ── Status sync ─────────────────────────────────────────
+async function pushStatus() {
   try {
-    const res = await fetch(SCRIPT_URL + '?type=status&ts=' + Date.now());
-    const rows = await res.json();
-    const newStatus = {};
-    rows.slice(1).forEach(r => {
-      // r = [key, isOut, by, address]
-      if (r[0]) {
-        newStatus[r[0]] = {
-          out: r[1] === true || r[1] === 'TRUE' || r[1] === 'true',
-          by: r[2] || '',
-          address: r[3] || ''
-        };
-      }
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'status', status: state.status })
     });
-    state.status = newStatus;
+  } catch(e) { /* silent */ }
+}
+
+async function pullStatus() {
+  try {
+    setBadge('syncing');
+    const res = await fetch(SCRIPT_URL + '?type=status&ts=' + Date.now());
+    const data = await res.json();
+    state.status = data || {};
     renderItems();
-    setSyncState('synced');
+    setBadge('live');
   } catch(e) {
-    setSyncState('offline');
+    setBadge('error');
   }
 }
 
-// --- PUSH STATUS TO SHEETS ---
-async function pushStatus(key, isOut, by, address) {
-  await fetch(SCRIPT_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'status_update', key, isOut, by: by||'', address: address||'' })
-  });
+function startPolling() {
+  pullStatus();
+  pollTimer = setInterval(pullStatus, POLL_INTERVAL);
 }
 
-// --- AUTO SYNC ---
-function startAutoSync() {
-  clearInterval(syncTimer);
-  syncTimer = setInterval(fetchStatus, SYNC_INTERVAL);
+function stopPolling() {
+  clearInterval(pollTimer);
 }
 
-// --- LOGO TRIPLE CLICK ---
+// ── Logo triple-click → admin ────────────────────────────
 document.getElementById('logoBtn').addEventListener('click', () => {
   logoClicks++;
   clearTimeout(logoTimer);
@@ -324,6 +315,7 @@ function exitAdmin() {
   document.getElementById('page-form').classList.add('active');
 }
 
+// ── Category / action ────────────────────────────────────
 function setCategory(cat) {
   state.category = cat; state.selected = null;
   document.getElementById('cat-supra').className = 'action-btn out' + (cat==='supra'?' active':'');
@@ -339,6 +331,7 @@ function setAction(action) {
   renderItems();
 }
 
+// ── Render items ─────────────────────────────────────────
 function renderItems() {
   const grid = document.getElementById('items-grid');
   grid.innerHTML = '';
@@ -365,6 +358,7 @@ function selectItem(key) {
   renderItems();
 }
 
+// ── Form submit ──────────────────────────────────────────
 function showError(msg) { const e=document.getElementById('form-error'); e.textContent=msg; e.style.display='block'; }
 function hideError() { document.getElementById('form-error').style.display='none'; }
 function showToast(msg) {
@@ -387,41 +381,41 @@ async function submitForm() {
   const idx = parseInt(state.selected.split('_')[1]);
   const itemName = state.items[state.category][idx];
   const categoryLabel = state.category==='supra' ? 'Supra Lockbox' : 'Contractor Box';
-  const isOut = state.action === 'out';
+
+  // Update status
+  state.status[state.selected] = state.action==='out'
+    ? { out: true, by: agent, address }
+    : { out: false };
 
   try {
-    // Save to log
+    // Push transaction log
     await fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent, address, category: categoryLabel, item: itemName, action: isOut ? 'Check Out' : 'Check In' })
+      body: JSON.stringify({ agent, address, category: categoryLabel, item: itemName, action: state.action==='out'?'Check Out':'Check In' })
     });
+    // Push updated status
+    await pushStatus();
 
-    // Save status
-    await pushStatus(state.selected, isOut, isOut ? agent : '', isOut ? address : '');
-
-    // Update local state
-    state.status[state.selected] = isOut ? { out: true, by: agent, address } : { out: false, by: '', address: '' };
-
+    renderItems();
     document.getElementById('f-agent').value = '';
     document.getElementById('f-address').value = '';
     state.selected = null;
     renderItems();
-    showToast(isOut ? `${itemName} checked out to ${agent}` : `${itemName} checked in by ${agent}`);
-    setSyncState('synced');
+    showToast(state.action==='out' ? `${itemName} checked out to ${agent}` : `${itemName} checked in by ${agent}`);
   } catch(e) {
     showError('Failed to save. Please check your connection.');
-    setSyncState('offline');
   }
 
   btn.disabled = false;
   btn.innerHTML = 'Submit';
 }
 
+// ── Activity log ─────────────────────────────────────────
 async function loadLog() {
   document.getElementById('log-list').innerHTML = '<div class="loading-overlay">Loading...</div>';
   try {
-    const res = await fetch(SCRIPT_URL + '?type=log&ts=' + Date.now());
+    const res = await fetch(SCRIPT_URL + '?ts=' + Date.now());
     const rows = await res.json();
     logData = rows.slice(1).reverse();
     renderLog();
@@ -444,6 +438,7 @@ function renderLog() {
   else if (logFilter==='in') rows=rows.filter(r=>(r[5]||'').toLowerCase().includes('in')&&!(r[5]||'').toLowerCase().includes('out'));
   else if (logFilter==='supra') rows=rows.filter(r=>(r[3]||'').toLowerCase().includes('supra'));
   else if (logFilter==='contractor') rows=rows.filter(r=>(r[3]||'').toLowerCase().includes('contractor'));
+
   if (!rows.length) { list.innerHTML='<div class="empty-state">No entries found.</div>'; return; }
   list.innerHTML = rows.map(r => {
     const [ts, agent, address, category, item, action] = r;
@@ -470,6 +465,7 @@ function formatTime(ts) {
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
 
+// ── Admin ────────────────────────────────────────────────
 function saveLocal() { localStorage.setItem('lb_items', JSON.stringify(state.items)); }
 
 function renderAdmin() {
@@ -502,9 +498,8 @@ function saveAdmin(cat) {
   saveLocal(); renderItems(); showToast('Saved!');
 }
 
-// --- INIT ---
-fetchStatus();
-startAutoSync();
+// ── Init ─────────────────────────────────────────────────
+startPolling();
 </script>
 </body>
 </html>
