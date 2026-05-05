@@ -16,6 +16,7 @@
     --danger-bg: #FEE8E8; --danger-text: #8B1F1F; --danger-border: #F5A0A0;
   }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
   header {
     background: var(--surface); border-bottom: 1px solid var(--border);
     padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;
@@ -31,6 +32,7 @@
   main { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
   .page { display: none; }
   .page.active { display: block; }
+
   .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 12px; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
   .form-group { margin-bottom: 14px; }
@@ -43,7 +45,8 @@
   }
   input[type="text"]:focus, input[type="password"]:focus { border-color: var(--border2); }
   input::placeholder { color: var(--text3); }
-  .action-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+
+  .action-row { display: flex; gap: 8px; margin-bottom: 1.25rem; }
   .action-btn {
     flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--border);
     background: var(--surface); font-family: 'DM Sans', sans-serif; font-size: 13px;
@@ -51,17 +54,50 @@
   }
   .action-btn.out.active { background: var(--out-bg); color: var(--out-text); border-color: var(--out-border); }
   .action-btn.in.active { background: var(--in-bg); color: var(--in-text); border-color: var(--in-border); }
-  .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
-  .item-tile { border: 1px solid var(--border); border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.15s; background: var(--surface); }
-  .item-tile:hover:not(.unavailable) { border-color: var(--border2); background: var(--surface2); }
-  .item-tile.selected { border-color: #1A1814; background: #F5F3EE; }
-  .item-tile.unavailable { opacity: 0.5; cursor: not-allowed; }
-  .item-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .status-pill { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.03em; padding: 2px 8px; border-radius: 20px; }
+
+  /* Key/box grid */
+  .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
+
+  .item-tile {
+    border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 12px;
+    cursor: pointer; transition: all 0.15s; background: var(--surface); position: relative;
+  }
+  .item-tile:hover:not(.unavailable):not(.checked-out-tile) { border-color: var(--border2); background: var(--surface2); transform: translateY(-1px); }
+  .item-tile.selected { border-color: var(--text); background: var(--surface2); box-shadow: 0 0 0 2px var(--text); }
+  .item-tile.checked-out-tile { border-color: var(--out-border); background: var(--out-bg); cursor: not-allowed; }
+  .item-tile.checked-out-tile.can-checkin { cursor: pointer; }
+  .item-tile.checked-out-tile.can-checkin:hover { border-color: var(--out-text); transform: translateY(-1px); }
+  .item-tile.unavailable { opacity: 0.45; cursor: not-allowed; }
+  .item-tile.selected.checked-out-tile { box-shadow: 0 0 0 2px var(--out-text); border-color: var(--out-text); }
+
+  .item-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .item-tile.checked-out-tile .item-name { color: var(--out-text); }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.03em;
+    padding: 3px 8px; border-radius: 20px;
+  }
   .pill-out { background: var(--out-bg); color: var(--out-text); border: 1px solid var(--out-border); }
   .pill-in { background: var(--in-bg); color: var(--in-text); border: 1px solid var(--in-border); }
-  .item-agent { font-size: 10px; color: var(--text3); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .submit-btn { width: 100%; padding: 12px; background: var(--text); color: white; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-top: 4px; }
+  .pill-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; display: inline-block; }
+
+  .item-agent { font-size: 10px; color: var(--out-text); margin-top: 5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-address { font-size: 10px; color: var(--text3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Strikethrough line for checked-out */
+  .item-tile.checked-out-tile::after {
+    content: ''; position: absolute; left: 12px; right: 12px; top: 22px;
+    height: 1.5px; background: var(--out-border); border-radius: 2px;
+  }
+
+  .hint-text { font-size: 11px; color: var(--text3); margin-top: 10px; text-align: center; }
+
+  .submit-btn {
+    width: 100%; padding: 12px; background: var(--text); color: white; border: none;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 14px;
+    font-weight: 600; cursor: pointer; transition: opacity 0.15s; margin-top: 4px;
+  }
   .submit-btn:hover { opacity: 0.85; }
   .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
   .error-msg { font-size: 12px; color: var(--danger-text); margin-top: 8px; }
@@ -121,7 +157,7 @@
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  @media (max-width: 480px) { header { padding: 0 1rem; } main { padding: 1.25rem 1rem; } }
+  @media (max-width: 480px) { header { padding: 0 1rem; } main { padding: 1.25rem 1rem; } .items-grid { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
@@ -139,10 +175,14 @@
 <main>
   <!-- FORM PAGE -->
   <div class="page active" id="page-form">
+
+    <!-- Category selector -->
     <div style="display:flex;gap:8px;margin-bottom:1.25rem;">
-      <button class="action-btn out active" id="cat-supra" onclick="setCategory('supra')" style="flex:1;font-size:14px;padding:10px;">Supra lockbox</button>
-      <button class="action-btn in" id="cat-cont" onclick="setCategory('cont')" style="flex:1;font-size:14px;padding:10px;">Contractor box</button>
+      <button class="action-btn out active" id="cat-supra" onclick="setCategory('supra')" style="flex:1;font-size:14px;padding:11px;">🔑 Supra lockbox</button>
+      <button class="action-btn in" id="cat-cont" onclick="setCategory('cont')" style="flex:1;font-size:14px;padding:11px;">📦 Contractor box</button>
     </div>
+
+    <!-- Agent info -->
     <div class="card">
       <div class="section-label">Agent info</div>
       <div class="form-group">
@@ -154,15 +194,22 @@
         <input type="text" id="f-address" placeholder="e.g. 123 Burnham St, Baguio City" />
       </div>
     </div>
+
+    <!-- Check out / Check in toggle -->
     <div class="card">
       <div class="section-label">Action</div>
       <div class="action-row">
         <button class="action-btn out active" id="action-out" onclick="setAction('out')">Check out</button>
         <button class="action-btn in" id="action-in" onclick="setAction('in')">Check in</button>
       </div>
+
       <div class="section-label" id="items-label">Select key</div>
-      <div class="items-grid" id="items-grid"><div class="loading-overlay">Loading...</div></div>
+      <div class="items-grid" id="items-grid">
+        <div class="loading-overlay">Loading availability…</div>
+      </div>
+      <div class="hint-text" id="hint-text">Only available keys can be checked out. Only checked-out keys can be checked in.</div>
     </div>
+
     <div class="error-msg" id="form-error" style="display:none;"></div>
     <button class="submit-btn" onclick="submitForm()" id="submit-btn">Submit</button>
   </div>
@@ -173,19 +220,23 @@
       <div class="admin-title">Admin</div>
       <button class="exit-btn" onclick="exitAdmin()">Exit admin</button>
     </div>
+
     <div class="admin-section">
       <div class="section-label" style="margin-bottom:14px;">Supra lockbox keys</div>
       <div class="items-admin-list" id="admin-supra-list"></div>
       <button class="add-item-btn" onclick="addAdminItem('supra')">+ Add key</button><br/>
       <button class="save-admin-btn" onclick="saveAdmin('supra')">Save supra keys</button>
     </div>
+
     <div class="admin-section">
       <div class="section-label" style="margin-bottom:14px;">Contractor boxes</div>
       <div class="items-admin-list" id="admin-cont-list"></div>
       <button class="add-item-btn" onclick="addAdminItem('cont')">+ Add box</button><br/>
       <button class="save-admin-btn" onclick="saveAdmin('cont')">Save contractor boxes</button>
     </div>
+
     <div class="divider"></div>
+
     <div class="admin-section">
       <div class="section-label" style="margin-bottom:14px;">Activity log</div>
       <button class="refresh-btn" onclick="loadLog()">
@@ -223,41 +274,38 @@
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwTpMqUvW-yZBHuXBT41_r3CsQ3FUVx7sbI7Fju7xDn18-z2TO64XQeOap0VA6pwGE/exec';
 const ADMIN_PASSWORD = '0000';
-const POLL_INTERVAL = 15000; // 15 seconds
+const POLL_MS = 15000;
 
 const defaultItems = {
   supra: ['Key #101','Key #102','Key #103','Key #104','Key #105'],
-  cont: ['Box #1','Box #2','Box #3','Box #4']
+  cont:  ['Box #1','Box #2','Box #3','Box #4']
 };
 
 let state = {
-  category: 'supra', action: 'out', selected: null,
+  category: 'supra',
+  action: 'out',
+  selected: null,
   items: JSON.parse(localStorage.getItem('lb_items') || 'null') || defaultItems,
-  status: {}
+  status: {}   // keyed by "supra_0", "cont_2", etc.
+               // value: { out: true, by: "Agent Name", address: "..." } or { out: false }
 };
 
 let logData = [], logFilter = 'all';
-let logoClicks = 0, logoTimer = null;
-let pollTimer = null;
+let logoClicks = 0, logoTimer = null, pollTimer = null;
 
-// ── Sync badge ──────────────────────────────────────────
+// ── Local persistence for items config only ───────────────
+function saveItemsLocal() {
+  localStorage.setItem('lb_items', JSON.stringify(state.items));
+}
+
+// ── Sync badge ────────────────────────────────────────────
 function setBadge(mode) {
   const b = document.getElementById('syncBadge');
-  b.className = 'sync-badge' + (mode === 'syncing' ? ' syncing' : mode === 'error' ? ' error' : '');
-  b.textContent = mode === 'syncing' ? 'Syncing…' : mode === 'error' ? 'Offline' : 'Live';
+  b.className = 'sync-badge' + (mode==='syncing'?' syncing':mode==='error'?' error':'');
+  b.textContent = mode==='syncing' ? 'Syncing…' : mode==='error' ? 'Offline' : 'Live';
 }
 
-// ── Status sync ─────────────────────────────────────────
-async function pushStatus() {
-  try {
-    await fetch(SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'status', status: state.status })
-    });
-  } catch(e) { /* silent */ }
-}
-
+// ── Pull status from Google Sheet ─────────────────────────
 async function pullStatus() {
   try {
     setBadge('syncing');
@@ -271,16 +319,23 @@ async function pullStatus() {
   }
 }
 
+// ── Push status to Google Sheet ───────────────────────────
+async function pushStatus() {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'status', status: state.status })
+    });
+  } catch(e) { /* silent */ }
+}
+
 function startPolling() {
   pullStatus();
-  pollTimer = setInterval(pullStatus, POLL_INTERVAL);
+  pollTimer = setInterval(pullStatus, POLL_MS);
 }
 
-function stopPolling() {
-  clearInterval(pollTimer);
-}
-
-// ── Logo triple-click → admin ────────────────────────────
+// ── Logo triple-click → admin ─────────────────────────────
 document.getElementById('logoBtn').addEventListener('click', () => {
   logoClicks++;
   clearTimeout(logoTimer);
@@ -294,7 +349,6 @@ function openModal() {
   document.getElementById('pwModal').classList.add('show');
   setTimeout(() => document.getElementById('pwInput').focus(), 100);
 }
-
 function closeModal() { document.getElementById('pwModal').classList.remove('show'); }
 
 function checkPassword() {
@@ -315,11 +369,11 @@ function exitAdmin() {
   document.getElementById('page-form').classList.add('active');
 }
 
-// ── Category / action ────────────────────────────────────
+// ── Category / action ─────────────────────────────────────
 function setCategory(cat) {
   state.category = cat; state.selected = null;
   document.getElementById('cat-supra').className = 'action-btn out' + (cat==='supra'?' active':'');
-  document.getElementById('cat-cont').className = 'action-btn in' + (cat==='cont'?' active':'');
+  document.getElementById('cat-cont').className  = 'action-btn in'  + (cat==='cont' ?' active':'');
   document.getElementById('items-label').textContent = cat==='supra' ? 'Select key' : 'Select box';
   renderItems();
 }
@@ -327,28 +381,49 @@ function setCategory(cat) {
 function setAction(action) {
   state.action = action; state.selected = null;
   document.getElementById('action-out').className = 'action-btn out' + (action==='out'?' active':'');
-  document.getElementById('action-in').className = 'action-btn in' + (action==='in'?' active':'');
+  document.getElementById('action-in').className  = 'action-btn in'  + (action==='in' ?' active':'');
   renderItems();
 }
 
-// ── Render items ─────────────────────────────────────────
+// ── Render items with full availability cycle ─────────────
 function renderItems() {
   const grid = document.getElementById('items-grid');
   grid.innerHTML = '';
+
   state.items[state.category].forEach((name, i) => {
-    const key = state.category + '_' + i;
-    const st = state.status[key] || { out: false };
-    const isOut = st.out;
+    const key   = state.category + '_' + i;
+    const st    = state.status[key] || { out: false };
+    const isOut = !!st.out;
+
+    // Can this tile be selected given the current action?
+    // Check out → only AVAILABLE keys selectable
+    // Check in  → only CHECKED OUT keys selectable
     const canSelect = state.action === 'out' ? !isOut : isOut;
     const isSelected = state.selected === key;
-    const cls = 'item-tile' + (isSelected?' selected':'') + (!canSelect?' unavailable':'');
-    const pill = isOut
-      ? `<span class="status-pill pill-out">Checked out</span>${st.by?`<div class="item-agent">${st.by}</div>`:''}`
-      : `<span class="status-pill pill-in">Available</span>`;
+
     const div = document.createElement('div');
+
+    let cls = 'item-tile';
+    if (isOut) cls += ' checked-out-tile';
+    if (isOut && state.action === 'in') cls += ' can-checkin';
+    if (!canSelect) cls += ' unavailable';
+    if (isSelected) cls += ' selected';
     div.className = cls;
-    div.innerHTML = `<div class="item-name">${name}</div>${pill}`;
-    if (canSelect) div.onclick = () => selectItem(key);
+
+    // Status pill
+    const pill = isOut
+      ? `<span class="status-pill pill-out"><span class="pill-dot"></span>Checked out</span>`
+      : `<span class="status-pill pill-in"><span class="pill-dot"></span>Available</span>`;
+
+    // Who has it
+    const agentLine  = isOut && st.by      ? `<div class="item-agent">👤 ${st.by}</div>`      : '';
+    const addrLine   = isOut && st.address  ? `<div class="item-address">📍 ${st.address}</div>` : '';
+
+    div.innerHTML = `<div class="item-name">${name}</div>${pill}${agentLine}${addrLine}`;
+
+    if (canSelect) {
+      div.onclick = () => selectItem(key);
+    }
     grid.appendChild(div);
   });
 }
@@ -358,51 +433,56 @@ function selectItem(key) {
   renderItems();
 }
 
-// ── Form submit ──────────────────────────────────────────
+// ── Form submit ───────────────────────────────────────────
 function showError(msg) { const e=document.getElementById('form-error'); e.textContent=msg; e.style.display='block'; }
 function hideError() { document.getElementById('form-error').style.display='none'; }
 function showToast(msg) {
   const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
+  setTimeout(()=>t.classList.remove('show'), 3000);
 }
 
 async function submitForm() {
   hideError();
-  const agent = document.getElementById('f-agent').value.trim();
+  const agent   = document.getElementById('f-agent').value.trim();
   const address = document.getElementById('f-address').value.trim();
-  if (!agent) { showError('Please enter the agent name.'); return; }
-  if (!address) { showError('Please enter the listing address.'); return; }
-  if (!state.selected) { showError('Please select a ' + (state.category==='supra'?'key':'box') + '.'); return; }
+
+  if (!agent)           { showError('Please enter the agent name.'); return; }
+  if (!address)         { showError('Please enter the listing address.'); return; }
+  if (!state.selected)  { showError('Please select a ' + (state.category==='supra'?'key':'box') + '.'); return; }
 
   const btn = document.getElementById('submit-btn');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>Saving...';
+  btn.innerHTML = '<span class="spinner"></span>Saving…';
 
-  const idx = parseInt(state.selected.split('_')[1]);
-  const itemName = state.items[state.category][idx];
+  const idx           = parseInt(state.selected.split('_')[1]);
+  const itemName      = state.items[state.category][idx];
   const categoryLabel = state.category==='supra' ? 'Supra Lockbox' : 'Contractor Box';
+  const actionLabel   = state.action==='out' ? 'Check Out' : 'Check In';
 
-  // Update status
+  // Update local status immediately for snappy UI
   state.status[state.selected] = state.action==='out'
-    ? { out: true, by: agent, address }
+    ? { out: true,  by: agent, address }
     : { out: false };
 
+  renderItems();
+
   try {
-    // Push transaction log
+    // 1. Log the transaction
     await fetch(SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent, address, category: categoryLabel, item: itemName, action: state.action==='out'?'Check Out':'Check In' })
+      body: JSON.stringify({ agent, address, category: categoryLabel, item: itemName, action: actionLabel })
     });
-    // Push updated status
+    // 2. Push updated status map
     await pushStatus();
 
-    renderItems();
-    document.getElementById('f-agent').value = '';
+    document.getElementById('f-agent').value   = '';
     document.getElementById('f-address').value = '';
     state.selected = null;
     renderItems();
-    showToast(state.action==='out' ? `${itemName} checked out to ${agent}` : `${itemName} checked in by ${agent}`);
+
+    const verb = state.action==='out' ? 'checked out to' : 'checked in by';
+    showToast(`${itemName} ${verb} ${agent}`);
   } catch(e) {
     showError('Failed to save. Please check your connection.');
   }
@@ -411,11 +491,11 @@ async function submitForm() {
   btn.innerHTML = 'Submit';
 }
 
-// ── Activity log ─────────────────────────────────────────
+// ── Activity log ──────────────────────────────────────────
 async function loadLog() {
-  document.getElementById('log-list').innerHTML = '<div class="loading-overlay">Loading...</div>';
+  document.getElementById('log-list').innerHTML = '<div class="loading-overlay">Loading…</div>';
   try {
-    const res = await fetch(SCRIPT_URL + '?ts=' + Date.now());
+    const res  = await fetch(SCRIPT_URL + '?ts=' + Date.now());
     const rows = await res.json();
     logData = rows.slice(1).reverse();
     renderLog();
@@ -434,12 +514,13 @@ function setFilter(f, btn) {
 function renderLog() {
   const list = document.getElementById('log-list');
   let rows = logData;
-  if (logFilter==='out') rows=rows.filter(r=>(r[5]||'').toLowerCase().includes('out'));
-  else if (logFilter==='in') rows=rows.filter(r=>(r[5]||'').toLowerCase().includes('in')&&!(r[5]||'').toLowerCase().includes('out'));
-  else if (logFilter==='supra') rows=rows.filter(r=>(r[3]||'').toLowerCase().includes('supra'));
-  else if (logFilter==='contractor') rows=rows.filter(r=>(r[3]||'').toLowerCase().includes('contractor'));
+  if (logFilter==='out')        rows = rows.filter(r=>(r[5]||'').toLowerCase().includes('out'));
+  else if (logFilter==='in')    rows = rows.filter(r=>(r[5]||'').toLowerCase().includes('in') && !(r[5]||'').toLowerCase().includes('out'));
+  else if (logFilter==='supra') rows = rows.filter(r=>(r[3]||'').toLowerCase().includes('supra'));
+  else if (logFilter==='contractor') rows = rows.filter(r=>(r[3]||'').toLowerCase().includes('contractor'));
 
   if (!rows.length) { list.innerHTML='<div class="empty-state">No entries found.</div>'; return; }
+
   list.innerHTML = rows.map(r => {
     const [ts, agent, address, category, item, action] = r;
     const isOut = (action||'').toLowerCase().includes('out');
@@ -465,9 +546,7 @@ function formatTime(ts) {
   return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
 }
 
-// ── Admin ────────────────────────────────────────────────
-function saveLocal() { localStorage.setItem('lb_items', JSON.stringify(state.items)); }
-
+// ── Admin ─────────────────────────────────────────────────
 function renderAdmin() {
   ['supra','cont'].forEach(cat => {
     const list = document.getElementById('admin-'+cat+'-list');
@@ -483,22 +562,22 @@ function renderAdmin() {
 
 function addAdminItem(cat) {
   state.items[cat].push(cat==='supra'?'New Key':'New Box');
-  saveLocal(); renderAdmin(); renderItems();
+  saveItemsLocal(); renderAdmin(); renderItems();
 }
 
 function deleteAdminItem(cat, idx) {
-  state.items[cat].splice(idx,1);
-  saveLocal(); renderAdmin(); renderItems();
+  state.items[cat].splice(idx, 1);
+  saveItemsLocal(); renderAdmin(); renderItems();
 }
 
 function saveAdmin(cat) {
   document.querySelectorAll(`#admin-${cat}-list input`).forEach((inp,i) => {
     if (inp.value.trim()) state.items[cat][i] = inp.value.trim();
   });
-  saveLocal(); renderItems(); showToast('Saved!');
+  saveItemsLocal(); renderItems(); showToast('Saved!');
 }
 
-// ── Init ─────────────────────────────────────────────────
+// ── Boot ──────────────────────────────────────────────────
 startPolling();
 </script>
 </body>
