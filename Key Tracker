@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 15px; color: #1c1e21; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 20px; }
+    .cat-btn { width: 100%; padding: 20px; margin: 10px 0; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; background: #007bff; color: white; }
+    .back-btn { background: none; border: none; color: #007bff; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+    input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+    .card { border: 1px solid #eee; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+    .card.out { background: #f8f9fa; border-left: 5px solid #ccc; opacity: 0.7; }
+    .card.avail { border-left: 5px solid #28a745; }
+    .card-info b { display: block; font-size: 15px; }
+    .card-info small { color: #65676b; }
+    .btn { padding: 10px 15px; border-radius: 6px; border: none; color: white; font-weight: bold; cursor: pointer; min-width: 100px; }
+    .btn-out { background: #dc3545; }
+    .btn-in { background: #28a745; }
+    .hidden { display: none; }
+    .strike { text-decoration: line-through; color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="step1">
+      <h2>Select Category</h2>
+      <button class="cat-btn" onclick="openCat('Lockbox')">Lockbox (Supra)</button>
+      <button class="cat-btn" onclick="openCat('Contract Box')">Contract Box</button>
+    </div>
+
+    <div id="step2" class="hidden">
+      <button class="back-btn" onclick="goBack()">← Change Category</button>
+      <input type="text" id="agent" placeholder="Agent Name">
+      <input type="text" id="prop" placeholder="Property Address">
+      <div id="list"></div>
+    </div>
+  </div>
+
+  <script>
+    let rawData = [];
+    let activeCat = '';
+
+    function refresh() {
+      google.script.run.withSuccessHandler(data => { rawData = data; render(); }).getData();
+    }
+    refresh();
+
+    function openCat(cat) {
+      activeCat = cat;
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.remove('hidden');
+      render();
+    }
+
+    function render() {
+      const container = document.getElementById('list');
+      container.innerHTML = `<h4>Status for ${activeCat}s</h4>`;
+      
+      rawData.forEach(row => {
+        if (row[0] !== activeCat) return;
+        const [name, status, agent, property] = [row[1], row[2], row[3], row[4]];
+        const isOut = (status === 'Checked Out');
+        
+        const div = document.createElement('div');
+        div.className = `card ${isOut ? 'out' : 'avail'}`;
+        div.innerHTML = `
+          <div class="card-info">
+            <b class="${isOut ? 'strike' : ''}">${name}</b>
+            <small>${isOut ? '❌ Checked out by ' + agent : '✅ Available'}</small>
+          </div>
+          <button class="btn ${isOut ? 'btn-in' : 'btn-out'}" onclick="handle('${name}', '${isOut ? 'checkin' : 'checkout'}')">
+            ${isOut ? 'Check In' : 'Check Out'}
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function handle(name, action) {
+      const agent = document.getElementById('agent').value;
+      const prop = document.getElementById('prop').value;
+      if (action === 'checkout' && (!agent || !prop)) return alert('Please enter Agent Name and Property Address');
+      
+      google.script.run.withSuccessHandler(data => {
+        rawData = data;
+        render();
+      }).processAction(name, agent, prop, action);
+    }
+
+    function goBack() {
+      document.getElementById('step1').classList.remove('hidden');
+      document.getElementById('step2').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
