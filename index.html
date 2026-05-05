@@ -27,109 +27,152 @@
       }
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 1.5rem 1rem; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 2rem 1rem; }
     .container { max-width: 960px; margin: 0 auto; }
+    
     .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-    h1 { font-size: 22px; font-weight: 700; }
+    h1 { font-size: 24px; font-weight: 600; }
     .sync-indicator { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
-    .pulse { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+    .pulse { width: 7px; height: 7px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
-    .sub { font-size: 13px; color: var(--text2); margin-bottom: 1.5rem; }
+    
+    .sub { font-size: 14px; color: var(--text2); margin-bottom: 2rem; }
+    .alert { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 1rem; display: none; }
+    .alert-err { background: var(--red-bg); color: var(--red-text); border: 0.5px solid var(--red-border); }
+    .alert-ok  { background: var(--green-bg); color: var(--green-text); border: 0.5px solid var(--green-border); }
 
-    /* Forms, Tabs, and Grid styles same as previous, but optimized for mobile */
-    .tabs { display: flex; gap: 6px; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 4px; }
-    .tab { padding: 8px 16px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text2); white-space: nowrap; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    .tab { padding: 7px 18px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text2); }
     .tab.active { background: var(--text); color: var(--surface); border-color: transparent; }
-    
-    .section { display: none; animation: fadeIn 0.2s ease-in; }
+    .tab-admin { margin-left: auto; border-color: var(--amber-border) !important; color: var(--amber-text) !important; }
+
+    .section { display: none; }
     .section.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
-    .item-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; }
-    .item-card.out { border-left: 4px solid var(--red); }
-    .item-card.avail { border-left: 4px solid var(--green); }
-    .item-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-    .item-status { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 12px; }
-    .status-out { color: var(--red); }
-    .status-in { color: var(--green); }
-    .agent-info { font-size: 12px; color: var(--text2); margin-bottom: 16px; line-height: 1.4; min-height: 34px; }
+    .form-area { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.5rem; }
+    .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .field { flex: 1; min-width: 150px; }
+    label { display: block; font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 4px; text-transform: uppercase; }
+    input { width: 100%; padding: 8px 10px; border-radius: var(--radius-sm); border: 0.5px solid var(--border2); background: var(--surface); color: var(--text); font-size: 13px; outline: none; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+    .item-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; border-left: 4px solid var(--green); }
+    .item-card.out { border-left-color: var(--red); }
+    .item-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+    .badge-out { background: var(--red-bg); color: var(--red-text); }
+    .badge-in { background: var(--green-bg); color: var(--green-text); }
+    .agent-info { font-size: 12px; color: var(--text2); margin: 8px 0; min-height: 32px; line-height: 1.3; }
     
-    .btn { width: 100%; padding: 10px; border-radius: var(--radius-sm); border: none; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; }
-    .btn-out { background: var(--red); color: white; }
-    .btn-in { background: var(--green); color: white; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn { width: 100%; padding: 8px; border-radius: var(--radius-sm); border: none; font-weight: 600; font-size: 12px; cursor: pointer; margin-top: 8px; }
+    .btn-checkout { background: var(--red); color: white; }
+    .btn-checkin { background: var(--green); color: white; }
+    .btn-primary { background: var(--blue); color: white; }
+    .btn-amber { background: var(--amber); color: white; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .form-box { background: var(--surface2); padding: 1rem; border-radius: var(--radius-lg); margin-bottom: 1.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media (max-width: 500px) { .form-box { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } }
-    .input-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text2); margin-bottom: 4px; text-transform: uppercase; }
-    .input-group input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border2); background: var(--surface); color: var(--text); }
+    /* Log Table */
+    .log-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: auto; }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .log-table th { text-align: left; background: var(--surface2); padding: 10px; font-size: 11px; color: var(--text2); }
+    .log-table td { padding: 10px; border-bottom: 0.5px solid var(--border); }
+
+    /* Admin */
+    .admin-login { max-width: 360px; margin: 3rem auto; text-align: center; background: var(--surface); padding: 2rem; border-radius: var(--radius-lg); border: 0.5px solid var(--border); }
+    .admin-panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+    .admin-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="header-row">
-    <h1>Inventory Tracker</h1>
-    <div class="sync-indicator"><div class="pulse"></div> Live Syncing</div>
+    <h1>Key Tracker</h1>
+    <div class="sync-indicator"><div class="pulse"></div> Live Sync</div>
   </div>
-  <p class="sub">Key & Lockbox management for the team.</p>
+  <p class="sub">Real-time status synced to Google Sheets</p>
+
+  <div id="alertBox" class="alert"></div>
 
   <div class="tabs">
     <button class="tab active" onclick="switchTab('lockbox')">Lockboxes</button>
     <button class="tab" onclick="switchTab('contract')">Contract Boxes</button>
-    <button class="tab" onclick="switchTab('log')">History</button>
-    <button class="tab" onclick="switchTab('admin')">Admin</button>
+    <button class="tab" onclick="switchTab('log')">Activity Log</button>
+    <button class="tab tab-admin" onclick="switchTab('admin')">Admin</button>
   </div>
 
-  <div id="lockbox" class="section active">
-    <div class="form-box">
-      <div class="input-group">
-        <label>Agent Name</label>
-        <input type="text" id="agent-name" placeholder="Who is checking out?">
-      </div>
-      <div class="input-group">
-        <label>Property Address</label>
-        <input type="text" id="prop-address" placeholder="e.g. 123 Main St">
+  <div id="form-container">
+    <div class="form-area">
+      <div class="form-row">
+        <div class="field"><label>Your Name</label><input type="text" id="global-agent" placeholder="Agent Name"></div>
+        <div class="field"><label>Property Address</label><input type="text" id="global-address" placeholder="e.g. 7255 Sagunto Place"></div>
       </div>
     </div>
-    <div id="lb-grid" class="grid"></div>
   </div>
 
-  <div id="contract" class="section">
-    <div id="cb-grid" class="grid"></div>
+  <div id="lockbox" class="section active"><div id="lb-grid" class="grid"></div></div>
+  <div id="contract" class="section"><div id="cb-grid" class="grid"></div></div>
+
+  <div id="log" class="section">
+    <div class="log-wrap">
+      <table class="log-table">
+        <thead><tr><th>Time</th><th>Agent</th><th>Address</th><th>Item</th><th>Action</th></tr></thead>
+        <tbody id="log-body"></tbody>
+      </table>
+    </div>
   </div>
 
+  <div id="admin" class="section">
+    <div id="admin-login" class="admin-login">
+      <h2>Admin Access</h2><br>
+      <input type="password" id="admin-pw" placeholder="Password"><br><br>
+      <button class="btn btn-amber" onclick="adminLogin()">Sign In</button>
+    </div>
+    <div id="admin-panel" style="display:none">
+       <div class="admin-panel">
+         <h3>Manage Items</h3>
+         <div id="admin-items-list"></div>
+         <div class="form-row" style="margin-top:15px">
+           <input type="text" id="new-item-name" placeholder="Item Name (e.g. Lockbox #5)">
+           <button class="btn btn-primary" style="width:100px; margin:0" onclick="addItem()">Add</button>
+         </div>
+       </div>
+       <button class="btn btn-amber" onclick="saveAdminChanges()">Save & Sync All Devices</button>
+       <button class="btn" onclick="adminLogout()">Logout</button>
+    </div>
   </div>
+</div>
 
 <script>
-  // UPDATE THIS URL WITH YOUR DEPLOYED GOOGLE SCRIPT URL
+  // REPLACE THIS WITH YOUR URL
   const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzoGIStsbAsHBHALZsY8o20OeljWCKZ0eCFU_DAqb7hsjLtaIuHrn7IO6Dozd2Fqfgk/exec';
 
   let items = { lockboxes: [], contractBoxes: [] };
   let statusMap = {};
-  let isUpdating = false;
+  let isAdmin = false;
 
   async function init() {
-    await fetchItems();
-    await refreshStatus();
-    // Fast Polling: Every 5 seconds to keep data fresh without crashing Google
-    setInterval(refreshStatus, 5000);
+    await loadItems();
+    await loadStatus();
+    setInterval(loadStatus, 5000); // 5-second sync
+    if(sessionStorage.getItem('isAdmin') === 'true') showAdminPanel();
   }
 
-  async function fetchItems() {
-    const res = await fetch(`${SHEET_URL}?type=items`);
-    items = await res.json();
-    renderGrids();
-  }
-
-  async function refreshStatus() {
-    if (isUpdating) return;
+  async function loadItems() {
     try {
-      const res = await fetch(`${SHEET_URL}?type=status&t=${Date.now()}`);
-      statusMap = await res.json();
+      const r = await fetch(`${SHEET_URL}?type=items`);
+      items = await r.json();
       renderGrids();
-    } catch (e) { console.error("Sync failed", e); }
+    } catch(e) { showAlert("Check connection", "err"); }
+  }
+
+  async function loadStatus() {
+    try {
+      const r = await fetch(`${SHEET_URL}?type=status&t=${Date.now()}`);
+      statusMap = await r.json();
+      renderGrids();
+      if(document.getElementById('log').classList.contains('active')) loadLog();
+    } catch(e) {}
   }
 
   function renderGrids() {
@@ -137,24 +180,16 @@
     renderCategory('cb-grid', items.contractBoxes, 'Contract Box');
   }
 
-  function renderCategory(containerId, list, category) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = list.map(item => {
+  function renderCategory(containerId, list, catName) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = list.map(item => {
       const s = statusMap[item.id] || { out: false };
       return `
-        <div class="item-card ${s.out ? 'out' : 'avail'}">
-          <div>
-            <div class="item-name">${item.name}</div>
-            <div class="item-status ${s.out ? 'status-out' : 'status-in'}">
-              ${s.out ? 'Checked Out' : 'Available'}
-            </div>
-            <div class="agent-info">
-              ${s.out ? `<strong>${s.by}</strong><br>${s.address}` : 'Ready for use'}
-            </div>
-          </div>
-          <button class="btn ${s.out ? 'btn-in' : 'btn-out'}" 
-            onclick="handleAction('${item.id}', '${item.name}', '${category}', ${s.out})">
+        <div class="item-card ${s.out ? 'out' : ''}">
+          <div class="item-name">${item.name}</div>
+          <span class="badge ${s.out ? 'badge-out' : 'badge-in'}">${s.out ? 'Out' : 'Available'}</span>
+          <div class="agent-info">${s.out ? `<b>${s.by}</b><br>${s.address}` : 'Ready for checkout'}</div>
+          <button class="btn ${s.out ? 'btn-checkin' : 'btn-checkout'}" onclick="doAction('${item.id}', '${item.name}', '${catName}', ${s.out})">
             ${s.out ? 'Check In' : 'Check Out'}
           </button>
         </div>
@@ -162,38 +197,89 @@
     }).join('');
   }
 
-  async function handleAction(id, name, category, isCurrentlyOut) {
-    const agent = document.getElementById('agent-name').value.trim();
-    const address = document.getElementById('prop-address').value.trim();
-    const action = isCurrentlyOut ? 'Check In' : 'Check Out';
+  async function doAction(id, name, cat, isOut) {
+    const agent = document.getElementById('global-agent').value.trim();
+    const address = document.getElementById('global-address').value.trim();
+    if(!agent) return showAlert("Enter your name", "err");
+    if(!isOut && !address) return showAlert("Enter property address", "err");
 
-    if (!agent) return alert("Please enter your name.");
-    if (!isCurrentlyOut && !address) return alert("Please enter property address.");
-
-    // OPTIMISTIC UI: Update instantly for the user
-    statusMap[id] = isCurrentlyOut ? { out: false } : { out: true, by: agent, address: address };
+    // Instant UI Update
+    statusMap[id] = isOut ? { out: false } : { out: true, by: agent, address };
     renderGrids();
 
-    // Send to Google
     try {
       await fetch(SHEET_URL, {
         method: 'POST',
-        mode: 'no-cors', // Fastest way to send data without waiting for response
-        body: JSON.stringify({ agent, address, category, item: name, action })
+        mode: 'no-cors',
+        body: JSON.stringify({ agent, address, category: cat, item: name, action: isOut ? 'Check In' : 'Check Out' })
       });
-      // Force a real status refresh 2 seconds later to confirm sync
-      setTimeout(refreshStatus, 2000);
-    } catch (e) {
-      alert("Error syncing. Try again.");
-      refreshStatus();
-    }
+      showAlert(`${name} synced!`, "ok");
+    } catch(e) { showAlert("Sync Error", "err"); }
   }
 
-  function switchTab(tabId) {
+  // --- ADMIN & LOG LOGIC ---
+  function adminLogin() {
+    const pw = document.getElementById('admin-pw').value;
+    if(pw === '0000') { // Matches your script constant
+      isAdmin = true;
+      sessionStorage.setItem('isAdmin', 'true');
+      sessionStorage.setItem('pw', pw);
+      showAdminPanel();
+    } else { alert("Wrong Password"); }
+  }
+
+  function showAdminPanel() {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    renderAdminList();
+  }
+
+  function renderAdminList() {
+    const list = [...items.lockboxes, ...items.contractBoxes];
+    document.getElementById('admin-items-list').innerHTML = list.map((item, i) => `
+      <div class="admin-row"><span>${item.name}</span><button onclick="removeItem(${i})">❌</button></div>
+    `).join('');
+  }
+
+  function addItem() {
+    const name = document.getElementById('new-item-name').value;
+    const id = name.toLowerCase().replace(/\s+/g, '_');
+    if(name.toLowerCase().includes('lockbox')) items.lockboxes.push({id, name});
+    else items.contractBoxes.push({id, name});
+    renderAdminList();
+  }
+
+  async function saveAdminChanges() {
+    const pw = sessionStorage.getItem('pw');
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: JSON.stringify({ type: 'saveItems', password: pw, items })
+    });
+    alert("Saved! Refreshing...");
+    location.reload();
+  }
+
+  async function loadLog() {
+    const r = await fetch(SHEET_URL);
+    const data = await r.json();
+    document.getElementById('log-body').innerHTML = data.slice(1).reverse().map(row => `
+      <tr><td>${new Date(row[0]).toLocaleTimeString()}</td><td>${row[1]}</td><td>${row[2]}</td><td>${row[4]}</td><td>${row[5]}</td></tr>
+    `).join('');
+  }
+
+  function switchTab(t) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    event.currentTarget.classList.add('active');
+    document.querySelectorAll('.tab').forEach(s => s.classList.remove('active'));
+    document.getElementById(t).classList.add('active');
+    event.target.classList.add('active');
+    if(t === 'log') loadLog();
+  }
+
+  function showAlert(m, type) {
+    const b = document.getElementById('alertBox');
+    b.textContent = m; b.className = `alert alert-${type}`; b.style.display = 'block';
+    setTimeout(() => b.style.display = 'none', 3000);
   }
 
   init();
